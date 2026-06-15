@@ -39,7 +39,7 @@
   font-family: var(--font-display);
   font-weight: 400;
   font-size: 46px;
-  color: #241a12;
+  color: var(--ink);
   line-height: 1.04;
   margin: 6px 0 0;
 }
@@ -49,7 +49,7 @@
 }
 
 .phead__title-dark {
-  color: #241a12;
+  color: var(--ink);
 }
 
 .phead__sub {

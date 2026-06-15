@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from 'svelte';
   import type { Phase } from '$lib/data/phases.js';
 
   let {
@@ -10,6 +11,10 @@
   const cx = 22;
   const nodeY = [60, 160, 260, 360, 460, 560, 650];
 
+  const reducedMotion =
+    typeof window !== 'undefined' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
   function buildPath(from: number, to: number): string {
     const points = nodeY.slice(from, to + 1);
     if (points.length < 2) return '';
@@ -17,15 +22,56 @@
     for (let i = 1; i < points.length; i++) {
       const y0 = points[i - 1];
       const y1 = points[i];
-      const cy = (y0 + y1) / 2;
       const offset = (i % 2 === 0) ? 8 : -8;
       d += ` C ${cx + offset} ${y0 + 30}, ${cx - offset} ${y1 - 30}, ${cx} ${y1}`;
     }
     return d;
   }
 
-  const donePath  = $derived(buildPath(0, Math.max(0, currentPhase)));
-  const todoPaths = $derived(
+  // Trail draw animation state
+  let drawnPhase = $state(currentPhase);
+  let animSeg    = $state('');
+  let drawing    = $state(false);
+
+  $effect(() => {
+    const to   = currentPhase;
+    const from = untrack(() => drawnPhase);
+
+    if (to === from) return;
+
+    if (to > from) {
+      if (reducedMotion) {
+        // Snap without animation
+        untrack(() => { drawnPhase = to; });
+        return;
+      }
+      untrack(() => {
+        animSeg = buildPath(from, to);
+        drawing = false;
+      });
+      // Double RAF: let committed path render first, then start draw
+      const r1 = requestAnimationFrame(() => {
+        requestAnimationFrame(() => { drawing = true; });
+      });
+      return () => cancelAnimationFrame(r1);
+    } else {
+      // Backward: snap immediately
+      untrack(() => {
+        drawnPhase = to;
+        animSeg    = '';
+        drawing    = false;
+      });
+    }
+  });
+
+  function onDrawEnd() {
+    drawnPhase = currentPhase;
+    animSeg    = '';
+    drawing    = false;
+  }
+
+  const committedPath = $derived(buildPath(0, drawnPhase));
+  const todoPaths     = $derived(
     currentPhase < PHASE_COUNT - 1 ? buildPath(currentPhase, PHASE_COUNT - 1) : ''
   );
 </script>
@@ -37,9 +83,21 @@
     preserveAspectRatio="xMidYMid meet"
     overflow="visible"
   >
-    <!-- Done trail -->
-    {#if donePath}
-      <path class="trail trail--done" d={donePath} aria-hidden="true" />
+    <!-- Committed done trail (static) -->
+    {#if committedPath}
+      <path class="trail trail--done" d={committedPath} aria-hidden="true" />
+    {/if}
+
+    <!-- Animating new segment (forward navigation) -->
+    {#if animSeg}
+      <path
+        class="trail trail--seg"
+        class:trail--seg-active={drawing}
+        d={animSeg}
+        pathLength="1"
+        aria-hidden="true"
+        onanimationend={onDrawEnd}
+      />
     {/if}
 
     <!-- Todo trail -->
@@ -77,6 +135,7 @@
 .rail {
   position: relative;
   width: 44px;
+  height: 700px;
   flex-shrink: 0;
 }
 
@@ -96,15 +155,31 @@
 }
 
 .trail--done {
-  stroke: #2c2117;
+  stroke: var(--ink);
   stroke-width: 2.4;
 }
 
 .trail--todo {
-  stroke: #2c2117;
+  stroke: var(--ink);
   stroke-width: 2;
   opacity: 0.3;
   stroke-dasharray: 1.5 8;
+}
+
+/* Animating segment */
+.trail--seg {
+  stroke: var(--ink);
+  stroke-width: 2.4;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1; /* hidden until animation starts */
+}
+
+.trail--seg-active {
+  animation: draw-seg 480ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes draw-seg {
+  to { stroke-dashoffset: 0; }
 }
 
 /* Node link */
@@ -134,7 +209,7 @@
 }
 
 .node--done {
-  fill: #2c2117;
+  fill: var(--ink);
 }
 
 .node--todo {
@@ -144,7 +219,7 @@
 }
 
 .node--cur {
-  fill: #2c2117;
+  fill: var(--ink);
 }
 
 .node--cur-ring {

@@ -156,7 +156,7 @@
     var(--parchment-lo) 100%
   );
   color: var(--ink);
-  padding: 48px 32px 0;
+  padding: var(--screen-pad-top) var(--screen-pad-side) 0;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
@@ -174,7 +174,7 @@
   padding-left: 72px; /* align with content column (44px rail + 28px gap) */
   text-decoration: none;
   display: block;
-  transition: color 0.15s ease;
+  transition: color var(--duration-fast) var(--ease-out);
 }
 
 .pg-label:hover {
@@ -188,7 +188,7 @@
   position: relative;
   z-index: 2;
   display: flex;
-  align-items: stretch;
+  align-items: flex-start;
   gap: 28px;
   flex: 1;
 }
@@ -199,6 +199,7 @@
   display: flex;
   flex-direction: column;
   padding-bottom: 24px;
+  view-transition-name: phase-content;
 }
 
 /* ── Drop cap ─────────────────────────────── */
@@ -237,7 +238,7 @@
   position: relative;
   padding-left: 18px;
   font-family: var(--font-body);
-  font-size: 15.5px;
+  font-size: var(--text-base);
   line-height: 1.5;
   color: var(--ink-mid);
 }
@@ -305,10 +306,10 @@
   bottom: 0;
   z-index: 10;
   background: var(--parchment-lo);
-  /* negative margins escape .screen's 32px side padding so bar spans full card width */
-  margin-left: -32px;
-  margin-right: -32px;
-  padding: 12px 32px;
+  /* negative margins escape .screen's side padding so bar spans full card width */
+  margin-left: calc(-1 * var(--screen-pad-side));
+  margin-right: calc(-1 * var(--screen-pad-side));
+  padding: 12px var(--screen-pad-side);
   padding-bottom: max(12px, env(safe-area-inset-bottom, 0px));
   display: flex;
   align-items: center;
@@ -343,13 +344,15 @@
   align-items: center;
   text-align: left;
   text-decoration: none;
-  transition: color 0.15s ease;
+  transition: color var(--duration-fast) var(--ease-out);
   flex-shrink: 0;
   white-space: nowrap;
 }
 
-.bar__back:hover {
+.bar__back:hover,
+.bar__back:focus-visible {
   color: var(--ink);
+  text-decoration: none;
 }
 
 .bar__cta {

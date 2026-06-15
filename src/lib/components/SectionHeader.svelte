@@ -49,7 +49,7 @@
   font-family: var(--font-display);
   font-size: 24px;
   font-weight: 400;
-  color: #241a12;
+  color: var(--ink);
   line-height: 1.1;
 }
 </style>

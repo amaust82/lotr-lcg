@@ -89,3 +89,46 @@ hr {
   border: none;
   border-top: 1px solid rgba(176,141,63,0.3);
 }
+
+/* ============================================================
+   View Transitions — Turn Guide phase navigation
+   ============================================================ */
+
+/* Suppress root crossfade so rail and chrome snap instantly;
+   only the named phase-content group animates */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* Default: crossfade (reduced-motion users always get this) */
+::view-transition-old(phase-content) {
+  animation: vt-fade-out 200ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+::view-transition-new(phase-content) {
+  animation: vt-fade-in  200ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Full motion: direction-aware slide + fade */
+@media (prefers-reduced-motion: no-preference) {
+  [data-nav-dir="fwd"]::view-transition-old(phase-content) {
+    animation: vt-slide-out-left  280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  [data-nav-dir="fwd"]::view-transition-new(phase-content) {
+    animation: vt-slide-in-right  280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  [data-nav-dir="back"]::view-transition-old(phase-content) {
+    animation: vt-slide-out-right 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  [data-nav-dir="back"]::view-transition-new(phase-content) {
+    animation: vt-slide-in-left   280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
+
+@keyframes vt-fade-out        { to   { opacity: 0; } }
+@keyframes vt-fade-in         { from { opacity: 0; } }
+@keyframes vt-slide-out-left  { to   { transform: translateY(-20px); opacity: 0; } }
+@keyframes vt-slide-in-right  { from { transform: translateY(20px);  opacity: 0; } }
+@keyframes vt-slide-out-right { to   { transform: translateY(20px);  opacity: 0; } }
+@keyframes vt-slide-in-left   { from { transform: translateY(-20px); opacity: 0; } }

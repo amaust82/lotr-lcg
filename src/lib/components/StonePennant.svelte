@@ -137,7 +137,7 @@
   align-items: center;
   justify-content: center;
   filter: var(--shadow-stone);
-  transition: filter 0.15s ease, transform 0.1s ease;
+  transition: filter var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out);
   user-select: none;
   -webkit-tap-highlight-color: transparent;
 }
@@ -153,7 +153,7 @@
 
 .pennant:focus-visible {
   outline: none;
-  filter: drop-shadow(0 0 0 3px var(--gold)) var(--shadow-stone);
+  filter: drop-shadow(0 0 2px var(--gold-hi)) drop-shadow(0 0 8px var(--gold)) var(--shadow-stone);
 }
 
 .pennant__canvas {
@@ -192,10 +192,16 @@
   background-size: 200% 100%;
   background-position: 100% 0;
   pointer-events: none;
-  transition: background-position 0.75s ease;
+  transition: background-position 0.75s var(--ease-out);
 }
 
 .pennant:hover .pennant__sheen {
   background-position: 0% 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pennant__sheen {
+    transition: none;
+  }
 }
 </style>
