@@ -126,6 +126,7 @@
         {:else}
           <circle class="node node--todo" cx={cx} cy={y} r="5.5" />
         {/if}
+        <text class="node-tooltip" x={cx + 16} y={y + 4}>{name}</text>
       </a>
     {/each}
   </svg>
@@ -206,6 +207,26 @@
 /* Invisible hit area */
 .node__hit {
   fill: transparent;
+}
+
+/* Phase name tooltip — hidden until hover/focus */
+.node-tooltip {
+  font-family: var(--font-display-sc, 'Cinzel', serif);
+  font-size: 10px;
+  fill: var(--gold-deep, #8a6a2e);
+  stroke: var(--parchment, #ecdfbf);
+  stroke-width: 4px;
+  paint-order: stroke fill;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 150ms ease;
+  dominant-baseline: middle;
+  user-select: none;
+}
+
+.node-link:hover .node-tooltip,
+.node-link:focus-visible .node-tooltip {
+  opacity: 1;
 }
 
 .node--done {
