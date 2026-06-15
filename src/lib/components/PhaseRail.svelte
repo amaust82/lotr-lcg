@@ -226,5 +226,15 @@
   fill: none;
   stroke: rgba(176,141,63,.4);
   stroke-width: 3;
+  animation: node-ring-pulse 3s ease-in-out infinite;
+}
+
+@keyframes node-ring-pulse {
+  0%, 100% { stroke-opacity: 0.4; }
+  50%       { stroke-opacity: 0.85; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .node--cur-ring { animation: none; }
 }
 </style>

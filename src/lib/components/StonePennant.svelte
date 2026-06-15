@@ -147,7 +147,7 @@
 }
 
 .pennant:active {
-  transform: translateY(2px);
+  transform: translateY(2px) scale(0.97);
   filter: drop-shadow(0 4px 8px rgba(0,0,0,.55));
 }
 

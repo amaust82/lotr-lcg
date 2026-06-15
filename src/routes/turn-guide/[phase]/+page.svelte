@@ -18,12 +18,24 @@
 
   function advance() {
     if (nextPhase) goto('/turn-guide/' + nextPhase.slug);
+    else if (isLast) goto('/turn-guide/resource');
   }
 
   function retreat() {
     if (prevPhase) goto('/turn-guide/' + prevPhase.slug);
+    else goto('/turn-guide/' + PHASES[PHASES.length - 1].slug);
+  }
+
+  function handleKey(e: KeyboardEvent) {
+    const t = e.target as HTMLElement;
+    if (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' ||
+        t.tagName === 'SELECT' || t.isContentEditable) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') advance();
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') retreat();
   }
 </script>
+
+<svelte:window onkeydown={handleKey} />
 
 <svelte:head>
   <title>{phase.name} Phase · Turn Guide · LOTR LCG</title>
@@ -68,8 +80,8 @@
 
             {#if section.steps}
               <ul class="step-list" aria-label="{section.heading ?? 'Steps'}">
-                {#each section.steps as step}
-                  <li class="step-list__item">
+                {#each section.steps as step, stepIdx}
+                  <li class="step-list__item" style="--i: {stepIdx}">
                     {#if step.boldPrefix}
                       <strong class="step-list__bold">{step.boldPrefix}</strong>{step.text}
                     {:else}
@@ -222,6 +234,15 @@
   margin-top: -3px;
   padding: 0 5px 0 14px;
   color: var(--crimson);
+  animation: drop-cap-in var(--duration-slow) var(--ease-out) both;
+}
+
+@keyframes drop-cap-in {
+  from { opacity: 0; transform: scale(0.85) translateY(4px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drop-cap { animation: none; }
 }
 
 /* ── Step list ────────────────────────────── */
@@ -241,6 +262,16 @@
   font-size: var(--text-base);
   line-height: 1.5;
   color: var(--ink-mid);
+  animation: step-in var(--duration-slow) var(--ease-out) both;
+  animation-delay: calc(80ms + var(--i, 0) * 30ms);
+}
+
+@keyframes step-in {
+  from { opacity: 0; transform: translateY(4px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .step-list__item { animation: none; }
 }
 
 .step-list__item::before {
@@ -344,7 +375,8 @@
   align-items: center;
   text-align: left;
   text-decoration: none;
-  transition: color var(--duration-fast) var(--ease-out);
+  transition: color var(--duration-fast) var(--ease-out),
+              transform var(--duration-fast) var(--ease-out);
   flex-shrink: 0;
   white-space: nowrap;
 }
@@ -353,6 +385,7 @@
 .bar__back:focus-visible {
   color: var(--ink);
   text-decoration: none;
+  transform: translateX(-3px);
 }
 
 .bar__cta {
