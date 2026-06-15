@@ -1,0 +1,145 @@
+/* ============================================================
+   LOTR LCG — Design Tokens
+   Illuminated Folio system
+   ============================================================ */
+
+@font-face {
+  font-family: 'Tengwar Annatar';
+  src: url('/assets/tengwar-annatar.ttf') format('truetype');
+  font-display: swap;
+}
+
+:root {
+
+  /* ----------------------------------------------------------
+     COLOR · Illuminated Folio palette
+     ---------------------------------------------------------- */
+
+  /* Parchment — primary content surface */
+  --parchment:    #ecdfbf;
+  --parchment-hi: #f4ecd2;
+  --parchment-lo: #e1d0a9;
+
+  /* Ink — text on parchment */
+  --ink:          #2c2117;
+  --ink-soft:     #5a4a33;
+  --ink-mid:      #3a2c1d;
+  --ink-muted:    #6f5f42;
+  --ink-faint:    #6f6444;
+
+  /* Crimson — primary function, CTAs, step eyebrows */
+  --crimson:      #7c2a1c;
+  --crimson-deep: #641f12;
+
+  /* Gold — ornament, action windows, decorative */
+  --gold:         #b08d3f;
+  --gold-hi:      #caa15a;
+  --gold-lt:      #e0c073;
+  --gold-deep:    #8a6a2e;
+
+  /* Vine — structural green, borders */
+  --vine:         #5d6a37;
+  --vine-hi:      #74824a;
+
+  /* Canvas — app background, dark outer shell */
+  --canvas:       #201d18;
+
+  /* ----------------------------------------------------------
+     TYPOGRAPHY
+     ---------------------------------------------------------- */
+  --font-display:  'IM Fell English', Georgia, serif;
+  --font-display-sc: 'IM Fell English SC', Georgia, serif;
+  --font-body:     'EB Garamond', Georgia, serif;
+  --font-tengwar:  'Tengwar Annatar', serif;
+
+  --text-xs:   0.6875rem;   /* 11px */
+  --text-sm:   0.8125rem;   /* 13px */
+  --text-base: 1rem;        /* 16px */
+  --text-md:   1.0938rem;   /* 17.5px */
+  --text-lg:   1.125rem;    /* 18px */
+  --text-xl:   1.5rem;
+  --text-2xl:  1.875rem;    /* 30px — section headers ~26px */
+  --text-3xl:  2.25rem;
+  --text-4xl:  2.875rem;    /* 46px display */
+
+  --leading-tight:   1.04;
+  --leading-snug:    1.35;
+  --leading-normal:  1.5;
+  --leading-relaxed: 1.6;
+
+  --tracking-tight:   -0.02em;
+  --tracking-normal:   0;
+  --tracking-wide:     0.04em;
+  --tracking-wider:    0.08em;
+  --tracking-widest:   0.14em;
+  --tracking-eyebrow:  0.22em;
+  --tracking-eyebrow-wide: 0.4em;
+
+  /* ----------------------------------------------------------
+     SPACING
+     ---------------------------------------------------------- */
+  --space-px: 1px;
+  --space-1:  0.25rem;
+  --space-2:  0.5rem;
+  --space-3:  0.75rem;
+  --space-4:  1rem;
+  --space-5:  1.25rem;
+  --space-6:  1.5rem;
+  --space-8:  2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+
+  /* Screen padding (phone frame interior) */
+  --screen-pad-top:    36px;
+  --screen-pad-side:   28px;
+  --screen-pad-bottom: 46px;
+
+  /* Section gap */
+  --section-gap: 34px;
+
+  /* ----------------------------------------------------------
+     BORDER RADIUS
+     ---------------------------------------------------------- */
+  --radius-sm:     2px;
+  --radius-md:     7px;    /* action window callout */
+  --radius-lg:     14px;   /* cards / panels */
+  --radius-pill:   24px;   /* buttons, counters */
+  --radius-phone:  24px;   /* phone frame */
+  --radius-full:   9999px;
+
+  /* ----------------------------------------------------------
+     SHADOWS
+     ---------------------------------------------------------- */
+  --shadow-sm:     0 1px 3px rgba(0,0,0,.45);
+  --shadow-md:     0 3px 8px -4px rgba(0,0,0,.3);
+  --shadow-lg:     0 8px 24px rgba(0,0,0,.55);
+  --shadow-stone:  drop-shadow(0 8px 16px rgba(0,0,0,.55));
+  --shadow-phone:  0 32px 72px -20px rgba(0,0,0,.88);
+
+  /* ----------------------------------------------------------
+     Z-INDEX
+     ---------------------------------------------------------- */
+  --z-dropdown: 100;
+  --z-sticky:   200;
+  --z-modal:    400;
+  --z-toast:    500;
+
+  /* ----------------------------------------------------------
+     MOTION
+     ---------------------------------------------------------- */
+  --duration-fast:   100ms;
+  --duration-base:   200ms;
+  --duration-slow:   350ms;
+  --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+    --duration-slow: 0ms;
+  }
+}

@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Build output
+build/
+dist/
+
+# SvelteKit generated
+.svelte-kit/
+
+# Local/tool directories
+_brief/
+.scratch/
+.gemini/
+.claude/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db
