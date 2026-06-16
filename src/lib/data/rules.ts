@@ -130,6 +130,40 @@ export const rules: RuleEntry[] = [
 		related: [],
 	},
 
+	{
+		name: 'Guarded',
+		type: 'keyword',
+		product: 'revised-core-set',
+		ref: 'Core Rules Reference p.9',
+		summary: 'When a Guarded objective is revealed, reveal the next encounter card and attach it to the objective. The objective cannot be claimed until all attached cards are dealt with — enemies defeated, locations explored, treacheries resolved.',
+		related: ['Surge'],
+	},
+	{
+		name: 'Restricted',
+		type: 'keyword',
+		product: 'revised-core-set',
+		ref: 'Core Rules Reference p.15',
+		summary: 'Each character can have no more than 2 Restricted attachments. If a third Restricted attachment is ever attached, one of them must immediately be discarded.',
+		related: [],
+	},
+	{
+		name: 'Victory',
+		type: 'keyword',
+		product: 'revised-core-set',
+		ref: 'Core Rules Reference p.19',
+		summary: 'When an enemy or location with Victory X is defeated or explored, it goes to the victory display instead of the discard pile. At the end of the game, each victory point in the display reduces the group\'s score.',
+		related: ['Threat'],
+		pattern: 'Victory \\d+',
+	},
+	{
+		name: 'Forced',
+		type: 'timing',
+		product: 'revised-core-set',
+		ref: 'Core Rules Reference p.8',
+		summary: 'A bold trigger word meaning the ability is mandatory — it must resolve whenever its condition is met, before any optional responses. Unlike Actions and Responses, players cannot choose to skip a Forced effect.',
+		related: [],
+	},
+
 	// ── The Dark of Mirkwood ─────────────────────────────────────────────────
 	{
 		name: 'Mirkwood Paths Campaign',
