@@ -5,7 +5,9 @@ import { get } from 'svelte/store';
 
 beforeEach(async () => {
 	const { ruleOverlay } = await import('$lib/stores/ruleOverlay');
+	const { collection } = await import('$lib/stores/collection');
 	ruleOverlay.close();
+	collection.setShowEverything(false);
 });
 
 afterEach(() => {
@@ -45,5 +47,52 @@ describe('KeywordText component', () => {
 		} else {
 			throw new Error('expected detail mode');
 		}
+	});
+
+	it('keyword from a non-owned product renders as plain text, not a button', async () => {
+		const KeywordText = (await import('./KeywordText.svelte')).default;
+		const rulesModule = await import('$lib/data/rules');
+		const unownedEntry = {
+			name: 'Warg Rider',
+			type: 'keyword' as const,
+			product: 'angmar-awakened-hero',
+			ref: '2.01',
+			summary: 'A warg keyword.',
+			related: [],
+		};
+		rulesModule.rules.push(unownedEntry);
+
+		const { container, queryAllByRole } = render(KeywordText, { text: '[[Warg Rider]]' });
+		expect(container.textContent).toContain('Warg Rider');
+		expect(queryAllByRole('button')).toHaveLength(0);
+
+		rulesModule.rules.pop();
+	});
+
+	it('keyword from a non-owned product renders as a button when showEverything is true', async () => {
+		const KeywordText = (await import('./KeywordText.svelte')).default;
+		const { collection } = await import('$lib/stores/collection');
+		const rulesModule = await import('$lib/data/rules');
+		const unownedEntry = {
+			name: 'Warg Rider',
+			type: 'keyword' as const,
+			product: 'angmar-awakened-hero',
+			ref: '2.01',
+			summary: 'A warg keyword.',
+			related: [],
+		};
+		rulesModule.rules.push(unownedEntry);
+		collection.setShowEverything(true);
+
+		const { getByRole } = render(KeywordText, { text: '[[Warg Rider]]' });
+		expect(getByRole('button', { name: 'Warg Rider' })).toBeTruthy();
+
+		rulesModule.rules.pop();
+	});
+
+	it('keyword from an owned product still renders as a button', async () => {
+		const KeywordText = (await import('./KeywordText.svelte')).default;
+		const { getByRole } = render(KeywordText, { text: '[[Surge]]' });
+		expect(getByRole('button', { name: 'Surge' })).toBeTruthy();
 	});
 });

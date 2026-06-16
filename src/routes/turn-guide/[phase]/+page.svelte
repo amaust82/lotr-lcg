@@ -8,8 +8,9 @@
   import ActionWindowCallout from '$lib/components/ActionWindowCallout.svelte';
   import StonePennant from '$lib/components/StonePennant.svelte';
   import KeywordText from '$lib/components/KeywordText.svelte';
-  import RuleOverlay from '$lib/components/RuleOverlay.svelte';
   import { PHASES } from '$lib/data/phases.js';
+  import { collection } from '$lib/stores/collection';
+  import { isStepVisible } from '$lib/utils/stepVisibility';
   const slug = $derived($page.params.phase);
   const currentPhase = $derived(PHASES.findIndex(p => p.slug === slug));
   const phase = $derived(PHASES[currentPhase] ?? PHASES[0]);
@@ -38,8 +39,6 @@
 
 <svelte:window onkeydown={handleKey} />
 
-<RuleOverlay />
-
 <svelte:head>
   <title>{phase.name} Phase · Turn Guide · LOTR LCG</title>
 </svelte:head>
@@ -48,7 +47,13 @@
   <div class="phone" role="main">
     <div class="screen">
       <div class="top-bar">
-        <a class="pg-label" href="/" aria-label="Turn Guide — back to home">Turn Guide</a>
+        <span class="pg-label">Turn Guide</span>
+        <a class="collection-link" href="/collection" aria-label="Collection Manager">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="2" y="3" width="20" height="14" rx="2"/>
+            <path d="M8 21h8M12 17v4"/>
+          </svg>
+        </a>
       </div>
 
       <div class="specimen">
@@ -85,7 +90,7 @@
 
             {#if section.steps}
               <ul class="step-list" aria-label="{section.heading ?? 'Steps'}">
-                {#each section.steps as step, stepIdx}
+                {#each section.steps.filter(s => isStepVisible(s, $collection)) as step, stepIdx}
                   <li class="step-list__item" style="--i: {stepIdx}">
                     {#if step.boldPrefix}
                       <strong class="step-list__bold"><KeywordText text={step.boldPrefix} /></strong><KeywordText text={step.text} />
@@ -125,7 +130,9 @@
             ← {prevPhase.name}
           </button>
         {:else}
-          <a class="bar__back" href="/">← Home</a>
+          <button class="bar__back" onclick={retreat} type="button" aria-label="Previous phase: {PHASES[PHASES.length - 1].name}">
+            ← {PHASES[PHASES.length - 1].name}
+          </button>
         {/if}
 
         <div class="bar__cta">
@@ -190,6 +197,22 @@
   padding-right: 0;
 }
 
+.collection-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  color: var(--crimson);
+  text-decoration: none;
+  border-radius: 50%;
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.collection-link:hover {
+  opacity: 0.7;
+}
+
 /* ── Page label ───────────────────────────── */
 
 .pg-label {
@@ -198,14 +221,6 @@
   font-size: 12px;
   color: var(--gold-hi);
   text-transform: uppercase;
-  text-decoration: none;
-  display: block;
-  transition: color var(--duration-fast) var(--ease-out);
-}
-
-.pg-label:hover {
-  color: var(--gold-lt);
-  text-decoration: none;
 }
 
 /* ── Layout ───────────────────────────────── */

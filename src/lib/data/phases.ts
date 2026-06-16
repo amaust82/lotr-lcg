@@ -1,6 +1,7 @@
 export interface PhaseStep {
   text: string;
   boldPrefix?: string;  // text before the colon, rendered in crimson bold
+  product?: string;
 }
 
 export interface ActionWindow {

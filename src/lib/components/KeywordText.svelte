@@ -1,11 +1,16 @@
 <script lang="ts">
 	import { parseKeywords, resolveKeyword } from '$lib/utils/parseKeywords';
 	import { ruleOverlay } from '$lib/stores/ruleOverlay';
+	import { collection } from '$lib/stores/collection';
 	import { rules } from '$lib/data/rules';
 
 	let { text }: { text: string } = $props();
 
 	const segments = $derived(parseKeywords(text));
+
+	function isOwned(product: string): boolean {
+		return $collection.showEverything || $collection.products[product] === true;
+	}
 </script>
 
 {#each segments as seg}
@@ -13,7 +18,7 @@
 		{seg.value}
 	{:else}
 		{@const entry = resolveKeyword(seg.name, rules)}
-		{#if entry}
+		{#if entry && isOwned(entry.product)}
 			<button class="keyword-link" onclick={() => ruleOverlay.open(entry)}>{seg.name}</button>
 		{:else}
 			{seg.name}
