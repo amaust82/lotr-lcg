@@ -8,6 +8,7 @@ export default defineConfig({
 		conditions: ['browser', 'module', 'svelte', 'import', 'default'],
 		alias: {
 			$lib: resolve('./src/lib'),
+			'$app/navigation': resolve('./src/test-mocks/app-navigation.ts'),
 		},
 	},
 	test: {

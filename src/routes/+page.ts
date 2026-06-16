@@ -1,5 +1,1 @@
-import { redirect } from '@sveltejs/kit';
-
-export function load() {
-	throw redirect(302, '/turn-guide/resource');
-}
+export const prerender = false;

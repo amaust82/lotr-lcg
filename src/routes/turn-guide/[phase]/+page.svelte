@@ -48,12 +48,20 @@
     <div class="screen">
       <div class="top-bar">
         <span class="pg-label">Turn Guide</span>
-        <a class="collection-link" href="/collection" aria-label="Collection Manager">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <rect x="2" y="3" width="20" height="14" rx="2"/>
-            <path d="M8 21h8M12 17v4"/>
-          </svg>
-        </a>
+        <div class="top-bar-actions">
+          <a class="top-bar-link" href="/collection" aria-label="Collection Manager">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="2" y="3" width="20" height="14" rx="2"/>
+              <path d="M8 21h8M12 17v4"/>
+            </svg>
+          </a>
+          <a class="top-bar-link" href="/" aria-label="Home">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/>
+              <path d="M9 21V12h6v9"/>
+            </svg>
+          </a>
+        </div>
       </div>
 
       <div class="specimen">
@@ -197,7 +205,13 @@
   padding-right: 0;
 }
 
-.collection-link {
+.top-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.top-bar-link {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -206,10 +220,10 @@
   color: var(--crimson);
   text-decoration: none;
   border-radius: 50%;
-  transition: color var(--duration-fast) var(--ease-out);
+  transition: opacity var(--duration-fast) var(--ease-out);
 }
 
-.collection-link:hover {
+.top-bar-link:hover {
   opacity: 0.7;
 }
 
