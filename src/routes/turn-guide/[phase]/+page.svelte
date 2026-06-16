@@ -8,6 +8,7 @@
   import ActionWindowCallout from '$lib/components/ActionWindowCallout.svelte';
   import StonePennant from '$lib/components/StonePennant.svelte';
   import { PHASES } from '$lib/data/phases.js';
+  import { viewMode } from '$lib/stores/viewMode.js';
 
   const slug = $derived($page.params.phase);
   const currentPhase = $derived(PHASES.findIndex(p => p.slug === slug));
@@ -44,7 +45,17 @@
 <div class="scene">
   <div class="phone" role="main">
     <div class="screen">
-      <a class="pg-label" href="/" aria-label="Turn Guide — back to home">Turn Guide</a>
+      <div class="top-bar">
+        <a class="pg-label" href="/" aria-label="Turn Guide — back to home">Turn Guide</a>
+        <button
+          class="mode-toggle"
+          onclick={() => viewMode.toggle()}
+          aria-pressed={$viewMode === 'reference'}
+          title={$viewMode === 'guided' ? 'Switch to Reference mode' : 'Switch to Guided mode'}
+        >
+          {$viewMode === 'guided' ? 'Reference' : 'Guided'}
+        </button>
+      </div>
 
       <div class="specimen">
 
@@ -61,7 +72,7 @@
             subtitle={phase.subtitle}
           />
 
-          {#if phase.intro}
+          {#if phase.intro && $viewMode === 'guided'}
             <p class="intro-text">
               <span class="drop-cap">{phase.intro[0]}</span>{phase.intro.slice(1)}
             </p>
@@ -69,7 +80,7 @@
 
           <!-- Sections -->
           {#each phase.sections as section}
-            <SectionDivider />
+            {#if $viewMode === 'guided'}<SectionDivider />{/if}
 
             {#if section.heading}
               <SectionHeader
@@ -99,8 +110,8 @@
             {/if}
           {/each}
 
-          <!-- Per-phase epigraph -->
-          {#if phase.quote}
+          <!-- Per-phase epigraph (guided only) -->
+          {#if phase.quote && $viewMode === 'guided'}
             <div class="epigraph" aria-label="Tolkien quotation">
               <span class="epigraph__leaf" aria-hidden="true">❧</span>
               <p class="epigraph__text">
@@ -174,6 +185,17 @@
   flex-direction: column;
 }
 
+/* ── Top bar (label + mode toggle) ───────── */
+
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-left: 72px; /* align label with content column */
+  padding-right: 0;
+}
+
 /* ── Page label ───────────────────────────── */
 
 .pg-label {
@@ -182,8 +204,6 @@
   font-size: 12px;
   color: var(--gold-hi);
   text-transform: uppercase;
-  margin-bottom: 16px;
-  padding-left: 72px; /* align with content column (44px rail + 28px gap) */
   text-decoration: none;
   display: block;
   transition: color var(--duration-fast) var(--ease-out);
@@ -392,6 +412,30 @@
   flex: 1;
   max-width: 260px;
   margin-left: auto;
+}
+
+/* ── Mode toggle ──────────────────────────── */
+
+.mode-toggle {
+  font-family: var(--font-display-sc);
+  font-size: 9px;
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--gold-deep);
+  background: none;
+  border: 1px solid var(--gold-deep);
+  border-radius: var(--radius-sm);
+  padding: 4px 10px;
+  cursor: pointer;
+  min-height: 28px;
+  transition: color var(--duration-fast) var(--ease-out),
+              border-color var(--duration-fast) var(--ease-out);
+}
+
+.mode-toggle:hover,
+.mode-toggle[aria-pressed="true"] {
+  color: var(--gold);
+  border-color: var(--gold);
 }
 
 /* ── Desktop ──────────────────────────────── */
