@@ -28,3 +28,23 @@ A modal/drawer that displays a Rule Entry on top of whatever screen is currently
 A persistent search trigger (icon, always visible in the top-right corner on every screen) that opens the Rule Overlay search mode. Typing filters Rule Entries by the active Collection. A "show everything" toggle overrides Collection filtering, revealing Rule Entries and steps from unowned Products.
 
 Content gating behavior: steps or Rule Entries belonging to an unowned Product are hidden entirely — no "not in your collection" indicator. Keywords from unowned Products that appear in visible steps render as plain unlinked text. "Show everything" overrides all of this.
+
+### Saga Expansion
+A Product flagged as `isSaga: true`. Saga Expansions support Campaign Mode — a structured narrative sequence of Scenarios where Decks carry persistent hero state between Scenarios. Non-Saga Products (Deluxe expansions, Adventure Packs) support Playthrough progress tracking only, with no hero state layer.
+
+### Playthrough
+A named, in-progress or completed run through the Scenarios of a single Product. Applies to all Product types: Saga Expansions get the full hero-state layer; non-Saga Products get scenario progress only. A player may have multiple simultaneous Playthroughs. Persisted in localStorage. Future: exportable via Sync Code.
+
+Fields: `id`, `name`, `productId`, `decks` (1–4 Decks), `scenarios` (ordered list of Scenario records), `createdAt`.
+
+### Scenario (Playthrough)
+One scenario within a Playthrough. Tracks: name, status (`not_attempted` | `completed` | `failed`), date played (optional), and free-text notes. Campaign Log checkboxes (Saga-specific branching choices) are captured in free-text notes for MVP; structured fields are deferred.
+
+### Deck
+One player's deck within a Playthrough — the unit a player brings to the table. A Playthrough has 1–4 Decks. Each Deck has an optional label, up to 3 Hero Slots, and (for Saga Expansions only) a list of boons and burdens.
+
+### Hero Slot
+A named position within a Deck. Hero name is free-text (e.g. "Aragorn"). Saga-only fields: `boons` (string[]), `burdens` (string[]), `fallen` (boolean). Hero candidates for selection are drawn from the ringsdb hero card list, filtered by the active Collection.
+
+### Sync Code
+A short-lived, anonymous cloud token that serializes a player's localStorage state and returns a redeemable code. No account, no PII. Codes expire after a configurable TTL (default: 30 days of inactivity). Redeeming a code imports the serialized state into local storage on any device. Deferred post-MVP.
