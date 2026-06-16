@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, fireEvent, cleanup } from '@testing-library/svelte';
 import { get } from 'svelte/store';
 import type { RuleEntry } from '$lib/data/rules';
@@ -29,7 +29,9 @@ const doomed: RuleEntry = {
 
 beforeEach(async () => {
 	const { ruleOverlay } = await import('$lib/stores/ruleOverlay');
+	const { collection } = await import('$lib/stores/collection');
 	ruleOverlay.close();
+	collection.setShowEverything(false);
 });
 
 afterEach(() => {
@@ -125,5 +127,56 @@ describe('RuleOverlay component', () => {
 		expect(getByText('1.38')).toBeTruthy();
 		expect(getByText('Reveal one additional encounter card.')).toBeTruthy();
 		expect(getByText('keyword')).toBeTruthy();
+	});
+
+	it('search results are filtered to owned products by default', async () => {
+		const { ruleOverlay } = await import('$lib/stores/ruleOverlay');
+		const { collection } = await import('$lib/stores/collection');
+		const RuleOverlay = (await import('./RuleOverlay.svelte')).default;
+		// 'angmar-awakened-hero' is not owned by default
+		const unownedEntry: RuleEntry = {
+			name: 'Warg',
+			type: 'keyword',
+			product: 'angmar-awakened-hero',
+			ref: '2.01',
+			summary: 'A fearsome creature keyword.',
+			related: [],
+		};
+		// Patch rules to include the unowned entry
+		const rulesModule = await import('$lib/data/rules');
+		rulesModule.rules.push(unownedEntry);
+
+		ruleOverlay.openSearch();
+		const { getByRole, queryByText } = render(RuleOverlay);
+		await fireEvent.input(getByRole('searchbox'), { target: { value: 'Warg' } });
+		expect(queryByText('Warg')).toBeNull();
+
+		// Cleanup
+		rulesModule.rules.pop();
+	});
+
+	it('search results show all entries when showEverything is true', async () => {
+		const { ruleOverlay } = await import('$lib/stores/ruleOverlay');
+		const { collection } = await import('$lib/stores/collection');
+		const RuleOverlay = (await import('./RuleOverlay.svelte')).default;
+		const unownedEntry: RuleEntry = {
+			name: 'Warg',
+			type: 'keyword',
+			product: 'angmar-awakened-hero',
+			ref: '2.01',
+			summary: 'A fearsome creature keyword.',
+			related: [],
+		};
+		const rulesModule = await import('$lib/data/rules');
+		rulesModule.rules.push(unownedEntry);
+		collection.setShowEverything(true);
+
+		ruleOverlay.openSearch();
+		const { getByRole, getByText } = render(RuleOverlay);
+		await fireEvent.input(getByRole('searchbox'), { target: { value: 'Warg' } });
+		expect(getByText('Warg')).toBeTruthy();
+
+		// Cleanup
+		rulesModule.rules.pop();
 	});
 });

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { ruleOverlay } from '$lib/stores/ruleOverlay';
 	import { rules, type RuleEntry } from '$lib/data/rules';
+	import { collection } from '$lib/stores/collection';
 	import { tick } from 'svelte';
 
 	function findRule(name: string): RuleEntry | undefined {
@@ -121,7 +122,8 @@
 					/>
 					{#if searchQuery}
 						{@const results = rules.filter((r) =>
-							r.name.toLowerCase().includes(searchQuery.toLowerCase()),
+							r.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+							($collection.showEverything || $collection.products[r.product]),
 						)}
 						<ul class="search-results">
 							{#each results as result}
