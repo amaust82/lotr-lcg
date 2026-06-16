@@ -83,8 +83,8 @@ export const PHASES: Phase[] = [
         heading: 'Commit Characters',
         steps: [
           { text: 'Each player may commit any number of heroes and allies to the quest by exhausting them.' },
-          { boldPrefix: 'Willpower', text: ' of all committed characters is totalled across all players.' },
-          { text: 'Characters with the Doomed or Peril keyword have special restrictions — check their text.' },
+          { boldPrefix: '[[Willpower]]', text: ' of all committed characters is totalled across all players.' },
+          { text: 'Characters with the [[Doomed X]] or [[Peril]] keyword have special restrictions — check their text.' },
         ],
         actionWindow: {
           text: 'Players may take actions after committing characters but before encounter cards are revealed.',
@@ -95,9 +95,9 @@ export const PHASES: Phase[] = [
         heading: 'Staging',
         steps: [
           { text: 'Reveal one encounter card per player from the encounter deck, placing each in the staging area.' },
-          { boldPrefix: 'Surge', text: ': Reveal an additional card. Doomed X: Each player raises their threat by X.' },
-          { boldPrefix: 'Treacheries', text: ' are resolved immediately; Enemies and Locations remain in the staging area.' },
-          { text: 'Total the threat of all cards in the staging area (active location excluded — it adds its threat here).' },
+          { boldPrefix: '[[Surge]]', text: ': Reveal one additional encounter card immediately. [[Doomed X]]: each player raises their threat by X.' },
+          { boldPrefix: '[[Treacheries]]', text: ' are resolved immediately; Enemies and Locations remain in the staging area.' },
+          { text: 'Total the [[Threat]] of all cards in the staging area (active location excluded — it adds its threat here).' },
         ],
         actionWindow: {
           text: 'Players may take actions after staging but before quest resolution.',
@@ -107,9 +107,9 @@ export const PHASES: Phase[] = [
         eyebrow: 'Step 3',
         heading: 'Quest Resolution',
         steps: [
-          { text: 'Compare total Willpower of committed characters against total Threat in the staging area.' },
-          { boldPrefix: 'Willpower exceeds Threat', text: ': Place that many progress tokens on the active location (first) then on the current quest card.' },
-          { boldPrefix: 'Threat exceeds Willpower', text: ': The first player raises their threat by the difference.' },
+          { text: 'Compare total [[Willpower]] of committed characters against total [[Threat]] in the staging area.' },
+          { boldPrefix: '[[Willpower]] exceeds [[Threat]]', text: ': Place that many progress tokens on the active location (first) then on the current quest card.' },
+          { boldPrefix: '[[Threat]] exceeds [[Willpower]]', text: ': The first player raises their threat by the difference.' },
           { boldPrefix: 'Tie', text: ': No progress is made; no threat is raised.' },
           { text: 'If a location fills with progress, it is explored and excess tokens carry to the quest card. If the quest card fills, advance to the next stage.' },
         ],
@@ -132,9 +132,9 @@ export const PHASES: Phase[] = [
         heading: 'Travel to a Location',
         steps: [
           { text: 'Players may collectively travel to one location from the staging area, making it the active location.' },
-          { boldPrefix: 'Travel keyword', text: ': The location imposes a cost; all players must be willing to pay it before traveling.' },
+          { boldPrefix: '[[Travel]] keyword', text: ': The location imposes a cost; all players must be willing to pay it before traveling.' },
           { text: 'Only one location may become active per round. If there is already an active location, players may not travel.' },
-          { boldPrefix: 'While a location is active', text: ', its Threat does not count in the staging area — but its Quest Points must be completed to explore it.' },
+          { boldPrefix: 'While a location is active', text: ', its [[Threat]] does not count in the staging area — but its Quest Points must be completed to explore it.' },
         ],
         actionWindow: {
           text: 'Players may take actions after the Travel Phase before the Encounter Phase.',
@@ -177,8 +177,8 @@ export const PHASES: Phase[] = [
         eyebrow: 'Step 1',
         heading: 'Deal Shadow Cards',
         steps: [
-          { text: 'Deal one shadow card face-down to each enemy engaged with any player.' },
-          { text: 'Shadow cards are drawn from the encounter deck. If the deck is empty, shuffle the discard pile first.' },
+          { text: 'Deal one [[Shadow]] card face-down to each enemy engaged with any player.' },
+          { text: '[[Shadow]] cards are drawn from the encounter deck. If the deck is empty, shuffle the discard pile first.' },
         ],
         actionWindow: {
           text: 'Players may take actions after shadow cards are dealt.',
@@ -190,9 +190,9 @@ export const PHASES: Phase[] = [
         steps: [
           { text: 'Beginning with the first player, each player resolves attacks from all enemies engaged with them.' },
           { boldPrefix: 'Declare a defender', text: ': One character may exhaust to defend. If no defender is declared, the attack is undefended.' },
-          { boldPrefix: 'Flip shadow card', text: ': Apply any shadow effect. If the shadow card has no shadow effect, discard it.' },
+          { boldPrefix: 'Flip [[Shadow]] card', text: ': Apply any shadow effect. If the shadow card has no shadow effect, discard it.' },
           { boldPrefix: 'Calculate damage', text: ': Enemy Attack minus defender\'s Defense equals damage dealt. Undefended attacks deal full damage to the first player\'s hero of their choice.' },
-          { boldPrefix: 'Sentinel', text: ': A character with Sentinel may defend attacks against other players.' },
+          { boldPrefix: '[[Sentinel]]', text: ': A character with Sentinel may defend attacks against other players.' },
         ],
         actionWindow: {
           text: 'Players may take actions after all enemy attacks are resolved.',
@@ -205,7 +205,7 @@ export const PHASES: Phase[] = [
           { text: 'Beginning with the first player, each player may declare one or more attacks against enemies engaged with them.' },
           { boldPrefix: 'Declare attackers', text: ': Exhaust one or more characters to attack. Total their Attack values.' },
           { boldPrefix: 'Calculate damage', text: ': Total Attack minus the enemy\'s Defense equals damage dealt to the enemy.' },
-          { boldPrefix: 'Ranged', text: ': A character with Ranged may participate in attacks against enemies engaged with other players.' },
+          { boldPrefix: '[[Ranged]]', text: ': A character with Ranged may participate in attacks against enemies engaged with other players.' },
           { text: 'If damage on an enemy equals or exceeds its Hit Points, it is defeated and removed from play. Collect any Victory Points printed on the card.' },
         ],
         actionWindow: {
@@ -226,11 +226,11 @@ export const PHASES: Phase[] = [
         eyebrow: 'In Order',
         heading: 'End of Round',
         steps: [
-          { boldPrefix: 'Raise threat', text: ': Each player raises their threat by 1.' },
+          { boldPrefix: 'Raise [[Threat]]', text: ': Each player raises their threat by 1.' },
           { boldPrefix: 'Ready all characters', text: ': All exhausted heroes, allies, and attachments under each player\'s control are readied (rotated upright).' },
           { boldPrefix: 'Ready all cards', text: ': All other exhausted cards (locations, enemies with exhausting abilities) ready as well unless a card specifies otherwise.' },
           { boldPrefix: 'Pass the first player token', text: ': The first player token passes clockwise to the next player.' },
-          { text: 'Begin a new round with the Resource Phase. If any player\'s threat reaches 50 (or the scenario threshold), the game ends in defeat.' },
+          { text: 'Begin a new round with the Resource Phase. If any player\'s [[Threat]] reaches 50 (or the scenario threshold), the game ends in defeat.' },
         ],
         actionWindow: {
           text: 'Players may take actions at the end of the Refresh Phase before the next round begins.',

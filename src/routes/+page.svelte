@@ -28,10 +28,10 @@
       </Frame>
     </a>
 
-    <a class="tile-link tile-link--dim" href="/collection">
+    <a class="tile-link" href="/collection">
       <Frame class="tile-frame">
         <div class="tile-body">
-          <span class="tile-eyebrow">Coming soon</span>
+          <span class="tile-eyebrow">Manage</span>
           <span class="tile-name">Collection Manager</span>
         </div>
       </Frame>

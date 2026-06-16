@@ -7,9 +7,9 @@
   import SectionDivider from '$lib/components/SectionDivider.svelte';
   import ActionWindowCallout from '$lib/components/ActionWindowCallout.svelte';
   import StonePennant from '$lib/components/StonePennant.svelte';
+  import KeywordText from '$lib/components/KeywordText.svelte';
+  import RuleOverlay from '$lib/components/RuleOverlay.svelte';
   import { PHASES } from '$lib/data/phases.js';
-  import { viewMode } from '$lib/stores/viewMode.js';
-
   const slug = $derived($page.params.phase);
   const currentPhase = $derived(PHASES.findIndex(p => p.slug === slug));
   const phase = $derived(PHASES[currentPhase] ?? PHASES[0]);
@@ -38,6 +38,8 @@
 
 <svelte:window onkeydown={handleKey} />
 
+<RuleOverlay />
+
 <svelte:head>
   <title>{phase.name} Phase · Turn Guide · LOTR LCG</title>
 </svelte:head>
@@ -47,14 +49,6 @@
     <div class="screen">
       <div class="top-bar">
         <a class="pg-label" href="/" aria-label="Turn Guide — back to home">Turn Guide</a>
-        <button
-          class="mode-toggle"
-          onclick={() => viewMode.toggle()}
-          aria-pressed={$viewMode === 'reference'}
-          title={$viewMode === 'guided' ? 'Switch to Reference mode' : 'Switch to Guided mode'}
-        >
-          {$viewMode === 'guided' ? 'Reference' : 'Guided'}
-        </button>
       </div>
 
       <div class="specimen">
@@ -72,7 +66,7 @@
             subtitle={phase.subtitle}
           />
 
-          {#if phase.intro && $viewMode === 'guided'}
+          {#if phase.intro}
             <p class="intro-text">
               <span class="drop-cap">{phase.intro[0]}</span>{phase.intro.slice(1)}
             </p>
@@ -80,7 +74,7 @@
 
           <!-- Sections -->
           {#each phase.sections as section}
-            {#if $viewMode === 'guided'}<SectionDivider />{/if}
+            <SectionDivider />
 
             {#if section.heading}
               <SectionHeader
@@ -94,9 +88,9 @@
                 {#each section.steps as step, stepIdx}
                   <li class="step-list__item" style="--i: {stepIdx}">
                     {#if step.boldPrefix}
-                      <strong class="step-list__bold">{step.boldPrefix}</strong>{step.text}
+                      <strong class="step-list__bold"><KeywordText text={step.boldPrefix} /></strong><KeywordText text={step.text} />
                     {:else}
-                      {step.text}
+                      <KeywordText text={step.text} />
                     {/if}
                   </li>
                 {/each}
@@ -111,7 +105,7 @@
           {/each}
 
           <!-- Per-phase epigraph (guided only) -->
-          {#if phase.quote && $viewMode === 'guided'}
+          {#if phase.quote}
             <div class="epigraph" aria-label="Tolkien quotation">
               <span class="epigraph__leaf" aria-hidden="true">❧</span>
               <p class="epigraph__text">
@@ -307,7 +301,7 @@
 
 .step-list__bold {
   font-weight: 600;
-  color: var(--crimson);
+  color: var(--ink);
 }
 
 /* ── Callout spacing ──────────────────────── */
@@ -414,29 +408,6 @@
   margin-left: auto;
 }
 
-/* ── Mode toggle ──────────────────────────── */
-
-.mode-toggle {
-  font-family: var(--font-display-sc);
-  font-size: 9px;
-  letter-spacing: var(--tracking-eyebrow);
-  text-transform: uppercase;
-  color: var(--gold-deep);
-  background: none;
-  border: 1px solid var(--gold-deep);
-  border-radius: var(--radius-sm);
-  padding: 4px 10px;
-  cursor: pointer;
-  min-height: 28px;
-  transition: color var(--duration-fast) var(--ease-out),
-              border-color var(--duration-fast) var(--ease-out);
-}
-
-.mode-toggle:hover,
-.mode-toggle[aria-pressed="true"] {
-  color: var(--gold);
-  border-color: var(--gold);
-}
 
 /* ── Desktop ──────────────────────────────── */
 
