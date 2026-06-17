@@ -118,6 +118,9 @@
         <!-- Invisible large hit target -->
         <circle class="node__hit" cx={cx} cy={y} r="18" />
 
+        <!-- Tooltip label (full phase name, visible on hover) -->
+        <text class="node-tooltip" x={cx + 38} y={y + 1}>{name}</text>
+
         {#if i < currentPhase}
           <rect class="waypoint waypoint--done" x={cx - 28} y={y - 9} width="56" height="18" rx="3" />
           <text class="waypoint-label waypoint-label--done" x={cx} y={y + 1}>{phases[i]?.abbr}</text>
@@ -261,6 +264,24 @@
   font-size: 10px;
   letter-spacing: 0.08em;
   fill: rgba(44, 33, 23, 0.45);
+}
+
+/* Tooltip label */
+.node-tooltip {
+  font-family: var(--font-display-sc, 'Cinzel', serif);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  dominant-baseline: middle;
+  pointer-events: none;
+  user-select: none;
+  fill: var(--parchment);
+  opacity: 0;
+  transition: opacity var(--duration-base) var(--ease-out);
+}
+
+.node-link:hover .node-tooltip,
+.node-link:focus-visible .node-tooltip {
+  opacity: 1;
 }
 
 /* Hover / focus effects */
