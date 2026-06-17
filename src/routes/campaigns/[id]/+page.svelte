@@ -4,6 +4,8 @@
   import { playthroughs } from '$lib/stores/playthroughs';
   import { campaigns } from '$lib/data/campaigns';
   import { products } from '$lib/data/rules';
+  import { heroes } from '$lib/data/heroes';
+  import { collection } from '$lib/stores/collection';
   import type { ScenarioRecord } from '$lib/types/playthrough';
 
   let { data }: { data: PageData } = $props();
@@ -105,12 +107,6 @@
     playthroughs.removeHeroSlot(playthrough.id, deckId, slotIndex);
   }
 
-  function handleHeroName(deckId: string, slotIndex: number, e: Event) {
-    if (!playthrough) return;
-    const value = (e.target as HTMLInputElement).value;
-    playthroughs.updateHeroSlot(playthrough.id, deckId, slotIndex, { heroName: value });
-  }
-
   function toggleFallen(deckId: string, slotIndex: number) {
     if (!playthrough) return;
     const deck = playthrough.decks.find((d) => d.id === deckId);
@@ -121,6 +117,37 @@
 
   let boonInputs: Record<string, string> = $state({});
   let burdenInputs: Record<string, string> = $state({});
+
+  let pickerOpen: Record<string, boolean> = $state({});
+  let pickerQuery: Record<string, string> = $state({});
+
+  function pickerKey(deckId: string, slotIndex: number) { return `${deckId}:${slotIndex}`; }
+
+  function filteredHeroes(deckId: string, slotIndex: number) {
+    const query = (pickerQuery[pickerKey(deckId, slotIndex)] ?? '').toLowerCase().trim();
+    if (!query) return [];
+    const owned = $collection.products;
+    const showAll = $collection.showEverything;
+    return heroes.filter((h) => {
+      if (!showAll && !owned[h.productId]) return false;
+      return h.name.toLowerCase().includes(query);
+    });
+  }
+
+  function handleHeroQuery(deckId: string, slotIndex: number, e: Event) {
+    const value = (e.target as HTMLInputElement).value;
+    const key = pickerKey(deckId, slotIndex);
+    pickerQuery[key] = value;
+    pickerOpen[key] = value.trim().length > 0;
+    playthroughs.updateHeroSlot(playthrough!.id, deckId, slotIndex, { heroName: value });
+  }
+
+  function selectHero(deckId: string, slotIndex: number, name: string) {
+    const key = pickerKey(deckId, slotIndex);
+    pickerQuery[key] = name;
+    pickerOpen[key] = false;
+    playthroughs.updateHeroSlot(playthrough!.id, deckId, slotIndex, { heroName: name });
+  }
 
   function boonKey(deckId: string, slotIndex: number) { return `${deckId}:${slotIndex}`; }
 
@@ -296,15 +323,33 @@
           <div class="hero-slots">
             {#each deck.heroSlots as hero, slotIndex (slotIndex)}
               {@const slotKey = boonKey(deck.id, slotIndex)}
+              {@const pk = pickerKey(deck.id, slotIndex)}
               <div class="hero-slot" data-fallen={hero.fallen ? 'true' : undefined}>
-                <input
-                  class="hero-name-input"
-                  type="text"
-                  aria-label="Hero name"
-                  placeholder="Hero name"
-                  value={hero.heroName}
-                  oninput={(e) => handleHeroName(deck.id, slotIndex, e)}
-                />
+                <div class="hero-picker-wrap">
+                  <input
+                    class="hero-name-input"
+                    type="text"
+                    aria-label="Hero name"
+                    placeholder="Hero name"
+                    value={pickerQuery[pk] ?? hero.heroName}
+                    oninput={(e) => handleHeroQuery(deck.id, slotIndex, e)}
+                  />
+                  {#if pickerOpen[pk] && filteredHeroes(deck.id, slotIndex).length > 0}
+                    <ul class="hero-picker-list" role="listbox" aria-label="Hero suggestions">
+                      {#each filteredHeroes(deck.id, slotIndex) as h (h.name + h.sphere)}
+                        <li
+                          class="hero-picker-option"
+                          role="option"
+                          aria-selected="false"
+                          onmousedown={() => selectHero(deck.id, slotIndex, h.name)}
+                        >
+                          <span class="hero-option-name">{h.name}</span>
+                          <span class="hero-option-meta">{h.sphere} · {h.traits}</span>
+                        </li>
+                      {/each}
+                    </ul>
+                  {/if}
+                </div>
                 {#if isSaga}
                   <button
                     class="fallen-btn"

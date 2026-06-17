@@ -3,6 +3,7 @@ import { describe, it, expect, afterEach, beforeEach } from 'vitest';
 import { render, cleanup, fireEvent } from '@testing-library/svelte';
 import { get } from 'svelte/store';
 import { playthroughs } from '$lib/stores/playthroughs';
+import { collection } from '$lib/stores/collection';
 import type { HeroSlot } from '$lib/types/playthrough';
 import Page from './+page.svelte';
 
@@ -542,5 +543,126 @@ describe('Campaign detail — Boon/burden on hero slots', () => {
 		const { getByText } = render(Page, { props: { data: { id: 'pt-saga' } } });
 		expect(getByText('Sting')).toBeInTheDocument();
 		expect(getByText('Corruption')).toBeInTheDocument();
+	});
+});
+
+describe('Campaign detail — Hero picker', () => {
+	afterEach(() => {
+		cleanup();
+		localStorage.clear();
+		get(playthroughs).forEach((p) => playthroughs.deletePlaythrough(p.id));
+		collection.setShowEverything(false);
+	});
+	beforeEach(() => {
+		localStorage.clear();
+		get(playthroughs).forEach((p) => playthroughs.deletePlaythrough(p.id));
+		collection.setShowEverything(false);
+	});
+
+	function seedWithSlot(heroName = '') {
+		playthroughs.createPlaythrough({
+			id: 'pt-picker',
+			name: 'Test Run',
+			productId: 'revised-core-set',
+			decks: [{ id: 'd1', heroSlots: [{ heroName, boons: [], burdens: [], fallen: false }] }],
+			scenarios: [],
+			createdAt: '2026-01-01T00:00:00.000Z',
+		});
+	}
+
+	it('typing in the hero name input shows a filtered results list', async () => {
+		seedWithSlot();
+		const { getByRole, queryByRole } = render(Page, { props: { data: { id: 'pt-picker' } } });
+		expect(queryByRole('listbox')).not.toBeInTheDocument();
+		const input = getByRole('textbox', { name: /hero name/i });
+		await fireEvent.input(input, { target: { value: 'Ar' } });
+		expect(getByRole('listbox')).toBeInTheDocument();
+	});
+
+	it('results are filtered by case-insensitive substring match', async () => {
+		seedWithSlot();
+		const { getByRole } = render(Page, { props: { data: { id: 'pt-picker' } } });
+		const input = getByRole('textbox', { name: /hero name/i });
+		await fireEvent.input(input, { target: { value: 'glor' } });
+		const listbox = getByRole('listbox');
+		expect(listbox).toHaveTextContent('Glorfindel');
+		expect(listbox).not.toHaveTextContent('Aragorn');
+	});
+
+	it('results are limited to heroes from owned products', async () => {
+		seedWithSlot();
+		// Default collection: only revised-core-set
+		const { getByRole } = render(Page, { props: { data: { id: 'pt-picker' } } });
+		const input = getByRole('textbox', { name: /hero name/i });
+		// "Ar" matches Aragorn (revised-core-set/Leadership) and Aragorn (angmar-awakened-hero/Tactics)
+		await fireEvent.input(input, { target: { value: 'Aragorn' } });
+		const listbox = getByRole('listbox');
+		const options = listbox.querySelectorAll('[role="option"]');
+		// Only the revised-core-set Aragorn should appear
+		expect(options).toHaveLength(1);
+		expect(options[0]).toHaveTextContent('Leadership');
+	});
+
+	it('showEverything shows heroes from all products', async () => {
+		seedWithSlot();
+		collection.setShowEverything(true);
+		const { getByRole } = render(Page, { props: { data: { id: 'pt-picker' } } });
+		const input = getByRole('textbox', { name: /hero name/i });
+		await fireEvent.input(input, { target: { value: 'Aragorn' } });
+		const listbox = getByRole('listbox');
+		const options = listbox.querySelectorAll('[role="option"]');
+		// Aragorn exists in Leadership (revised), Tactics (angmar), Fellowship (two-towers)
+		expect(options.length).toBeGreaterThanOrEqual(3);
+	});
+
+	it('each result shows name, sphere, and traits', async () => {
+		seedWithSlot();
+		const { getByRole } = render(Page, { props: { data: { id: 'pt-picker' } } });
+		const input = getByRole('textbox', { name: /hero name/i });
+		await fireEvent.input(input, { target: { value: 'Gimli' } });
+		const option = getByRole('listbox').querySelector('[role="option"]')!;
+		expect(option).toHaveTextContent('Gimli');
+		expect(option).toHaveTextContent('Tactics');
+		expect(option).toHaveTextContent('Dwarf. Noble. Warrior.');
+	});
+
+	it('clicking a result sets heroName in the store', async () => {
+		seedWithSlot();
+		const { getByRole } = render(Page, { props: { data: { id: 'pt-picker' } } });
+		const input = getByRole('textbox', { name: /hero name/i });
+		await fireEvent.input(input, { target: { value: 'Gimli' } });
+		const option = getByRole('listbox').querySelector('[role="option"]')!;
+		await fireEvent.mouseDown(option);
+		const stored = get(playthroughs).find((p) => p.id === 'pt-picker')!;
+		expect(stored.decks[0].heroSlots[0].heroName).toBe('Gimli');
+	});
+
+	it('clicking a result closes the picker', async () => {
+		seedWithSlot();
+		const { getByRole, queryByRole } = render(Page, { props: { data: { id: 'pt-picker' } } });
+		const input = getByRole('textbox', { name: /hero name/i });
+		await fireEvent.input(input, { target: { value: 'Gimli' } });
+		const option = getByRole('listbox').querySelector('[role="option"]')!;
+		await fireEvent.mouseDown(option);
+		expect(queryByRole('listbox')).not.toBeInTheDocument();
+	});
+
+	it('empty query hides the results list', async () => {
+		seedWithSlot();
+		const { getByRole, queryByRole } = render(Page, { props: { data: { id: 'pt-picker' } } });
+		const input = getByRole('textbox', { name: /hero name/i });
+		await fireEvent.input(input, { target: { value: 'Ar' } });
+		expect(getByRole('listbox')).toBeInTheDocument();
+		await fireEvent.input(input, { target: { value: '' } });
+		expect(queryByRole('listbox')).not.toBeInTheDocument();
+	});
+
+	it('typing a name not in the list persists the free-text value to the store', async () => {
+		seedWithSlot();
+		const { getByRole } = render(Page, { props: { data: { id: 'pt-picker' } } });
+		const input = getByRole('textbox', { name: /hero name/i });
+		await fireEvent.input(input, { target: { value: 'Homebrew Hero' } });
+		const stored = get(playthroughs).find((p) => p.id === 'pt-picker')!;
+		expect(stored.decks[0].heroSlots[0].heroName).toBe('Homebrew Hero');
 	});
 });
