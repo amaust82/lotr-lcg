@@ -11,11 +11,17 @@ export type Deck = {
 	heroSlots: HeroSlot[];
 };
 
+export type CampaignLogEntry = {
+	fieldId: string;
+	value: boolean | string;
+};
+
 export type ScenarioRecord = {
 	scenarioId: string;
 	status: 'not_attempted' | 'completed' | 'failed';
 	datePlayed?: string;
 	notes?: string;
+	campaignLog: CampaignLogEntry[];
 };
 
 export type Playthrough = {

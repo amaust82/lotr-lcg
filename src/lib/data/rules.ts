@@ -4,7 +4,7 @@ export interface Product {
 	id: string;
 	name: string;
 	locked: boolean;
-	isSaga: boolean;
+	hasCampaignMode: boolean;
 	sku?: string;   // publisher product code, e.g. "MEC101"
 	image?: string; // image filename (no extension) — defaults to id when absent
 }
@@ -24,27 +24,27 @@ export const REVISED_CORE_SET: Product = {
 	id: 'revised-core-set',
 	name: 'Revised Core Set',
 	locked: true,
-	isSaga: false,
+	hasCampaignMode: true,
 	sku: 'MEC101',
 	image: 'core-box',
 };
 
 export const products: Product[] = [
 	REVISED_CORE_SET,
-	{ id: 'angmar-awakened-hero',     name: 'Angmar Awakened Hero Expansion',     locked: false, isSaga: false },
-	{ id: 'angmar-awakened-campaign', name: 'Angmar Awakened Campaign Expansion', locked: false, isSaga: true  },
-	{ id: 'dark-of-mirkwood',         name: 'The Dark of Mirkwood',               locked: false, isSaga: false, sku: 'MEC102' },
-	{ id: 'defenders-of-gondor',      name: 'Defenders of Gondor',                locked: false, isSaga: false, sku: 'MEC105' },
-	{ id: 'dream-chaser-hero',        name: 'Dream-chaser Hero Expansion',        locked: false, isSaga: false },
-	{ id: 'dream-chaser-campaign',    name: 'Dream-chaser Campaign Expansion',    locked: false, isSaga: true  },
-	{ id: 'dwarves-of-durin',         name: 'Dwarves of Durin',                   locked: false, isSaga: false, sku: 'MEC103', image: 'dwarves-of-durin-box' },
-	{ id: 'elves-of-lorien',          name: 'Elves of Lórien',                    locked: false, isSaga: false, sku: 'MEC104', image: 'elves-of-lorien-box' },
-	{ id: 'ered-mithrin-hero',        name: 'Ered Mithrin Hero Expansion',        locked: false, isSaga: false },
-	{ id: 'ered-mithrin-campaign',    name: 'Ered Mithrin Campaign Expansion',    locked: false, isSaga: true  },
-	{ id: 'riders-of-rohan',          name: 'Riders of Rohan',                    locked: false, isSaga: false, sku: 'MEC106' },
-	{ id: 'fellowship-of-the-ring-saga', name: 'The Fellowship of the Ring',      locked: false, isSaga: true  },
-	{ id: 'two-towers-saga',          name: 'The Two Towers',                     locked: false, isSaga: true  },
-	{ id: 'return-of-the-king-saga',  name: 'The Return of the King',             locked: false, isSaga: true  },
+	{ id: 'angmar-awakened-hero',     name: 'Angmar Awakened Hero Expansion',     locked: false, hasCampaignMode: false },
+	{ id: 'angmar-awakened-campaign', name: 'Angmar Awakened Campaign Expansion', locked: false, hasCampaignMode: true  },
+	{ id: 'dark-of-mirkwood',         name: 'The Dark of Mirkwood',               locked: false, hasCampaignMode: true,  sku: 'MEC102' },
+	{ id: 'defenders-of-gondor',      name: 'Defenders of Gondor',                locked: false, hasCampaignMode: false, sku: 'MEC105' },
+	{ id: 'dream-chaser-hero',        name: 'Dream-chaser Hero Expansion',        locked: false, hasCampaignMode: false },
+	{ id: 'dream-chaser-campaign',    name: 'Dream-chaser Campaign Expansion',    locked: false, hasCampaignMode: true  },
+	{ id: 'dwarves-of-durin',         name: 'Dwarves of Durin',                   locked: false, hasCampaignMode: false, sku: 'MEC103', image: 'dwarves-of-durin-box' },
+	{ id: 'elves-of-lorien',          name: 'Elves of Lórien',                    locked: false, hasCampaignMode: false, sku: 'MEC104', image: 'elves-of-lorien-box' },
+	{ id: 'ered-mithrin-hero',        name: 'Ered Mithrin Hero Expansion',        locked: false, hasCampaignMode: false },
+	{ id: 'ered-mithrin-campaign',    name: 'Ered Mithrin Campaign Expansion',    locked: false, hasCampaignMode: true  },
+	{ id: 'riders-of-rohan',          name: 'Riders of Rohan',                    locked: false, hasCampaignMode: false, sku: 'MEC106' },
+	{ id: 'fellowship-of-the-ring-saga', name: 'The Fellowship of the Ring',      locked: false, hasCampaignMode: true  },
+	{ id: 'two-towers-saga',          name: 'The Two Towers',                     locked: false, hasCampaignMode: true  },
+	{ id: 'return-of-the-king-saga',  name: 'The Return of the King',             locked: false, hasCampaignMode: true  },
 ];
 
 export const rules: RuleEntry[] = [
