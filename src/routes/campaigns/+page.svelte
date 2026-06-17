@@ -49,7 +49,7 @@
 </script>
 
 <svelte:head>
-  <title>Campaigns — LOTR LCG Companion</title>
+  <title>Campaigns — LOTR LCG Wayfellow</title>
 </svelte:head>
 
 <div class="page">
@@ -67,7 +67,7 @@
         {@const done = completedCount(p)}
         <li class="item">
           <a class="item-link" href="/campaigns/{p.id}">
-            <Frame class="item-frame">
+            <Frame corners={false} class="item-frame">
               <div class="item-body">
                 <div class="item-text">
                   <span class="item-name">{p.name}</span>
@@ -98,6 +98,11 @@
 
   <section class="create-section">
     <h2 class="create-heading">New Campaign</h2>
+    {#if ownedCampaignProducts.length === 0}
+      <p class="no-products">
+        Add a campaign product to your <a class="no-products-link" href="/collection">Collection</a> first.
+      </p>
+    {:else}
     <form class="create-form" onsubmit={(e) => { e.preventDefault(); handleCreate(); }}>
       <div class="field">
         <label for="campaign-name" class="label">Name</label>
@@ -113,6 +118,7 @@
       </div>
       <button type="submit" class="btn-create" disabled={!name.trim()}>Start Campaign</button>
     </form>
+    {/if}
   </section>
 </div>
 
@@ -134,15 +140,17 @@
 
 .back {
   font-family: var(--font-display-sc);
-  font-size: 11px;
-  letter-spacing: var(--tracking-eyebrow);
-  color: var(--gold-deep);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: var(--parchment);
   text-decoration: none;
   text-transform: uppercase;
   flex-shrink: 0;
+  opacity: 0.65;
+  transition: opacity var(--duration-fast) var(--ease-out);
 }
 
-.back:hover { color: var(--gold); }
+.back:hover { opacity: 1; }
 
 .title {
   font-family: var(--font-display);
@@ -288,6 +296,22 @@
 .create-section {
   border-top: 1px solid color-mix(in srgb, var(--gold) 15%, transparent);
   padding-top: 28px;
+}
+
+.no-products {
+  font-family: var(--font-display-sc);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold-deep);
+  opacity: 0.8;
+  max-width: none;
+}
+
+.no-products-link {
+  color: var(--gold);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .create-heading {

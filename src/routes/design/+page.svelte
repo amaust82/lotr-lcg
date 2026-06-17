@@ -14,7 +14,7 @@
 
   <!-- Header -->
   <header class="ds-header">
-    <p class="ds-header__eyebrow">LOTR LCG Companion</p>
+    <p class="ds-header__eyebrow">LOTR LCG Wayfellow</p>
     <h1 class="ds-header__title">Illuminated Folio</h1>
     <p class="ds-header__sub">Design System · Component Reference</p>
     <a href="/turn-guide/resource" class="ds-header__cta">Open Turn Guide →</a>
@@ -199,7 +199,7 @@
   </div>
 
   <footer class="ds-footer">
-    <p>LOTR LCG Companion · Illuminated Folio v1.0</p>
+    <p>LOTR LCG Wayfellow · Illuminated Folio v1.0</p>
     <a href="/turn-guide/resource">Open Turn Guide →</a>
   </footer>
 

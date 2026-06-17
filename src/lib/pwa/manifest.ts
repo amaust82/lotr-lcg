@@ -1,7 +1,7 @@
 export const manifest = {
-	name: 'LOTR LCG Companion',
+	name: 'LOTR LCG Wayfellow',
 	short_name: 'LOTR LCG',
-	description: 'Turn guide and reference companion for the Lord of the Rings Living Card Game.',
+	description: 'Turn guide and rules reference for the Lord of the Rings Living Card Game.',
 	theme_color: '#201d18',
 	background_color: '#201d18',
 	display: 'standalone' as const,

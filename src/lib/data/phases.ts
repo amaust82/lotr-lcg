@@ -10,6 +10,7 @@ export interface ActionWindow {
 
 export interface Phase {
   name: string;
+  abbr: string;          // consonant abbreviation for rail marker, e.g. "Rsrc"
   slug: string;          // url segment, e.g. "resource"
   eyebrow: string;       // e.g. "The Round · Phase I"
   subtitle: string;      // italic subheading
@@ -28,6 +29,7 @@ export interface PhaseSection {
 export const PHASES: Phase[] = [
   {
     name: 'Resource',
+    abbr: 'Rsrc',
     slug: 'resource',
     eyebrow: 'The Round · Phase I',
     subtitle: 'Gather strength for the road ahead.',
@@ -50,6 +52,7 @@ export const PHASES: Phase[] = [
   },
   {
     name: 'Planning',
+    abbr: 'Plan',
     slug: 'planning',
     eyebrow: 'The Round · Phase II',
     subtitle: 'Allies arrive; attachments are readied.',
@@ -73,6 +76,7 @@ export const PHASES: Phase[] = [
   },
   {
     name: 'Quest',
+    abbr: 'Quest',
     slug: 'quest',
     eyebrow: 'The Round · Phase III',
     subtitle: 'The road is long; progress must be made or darkness grows.',
@@ -122,6 +126,7 @@ export const PHASES: Phase[] = [
   },
   {
     name: 'Travel',
+    abbr: 'Trvl',
     slug: 'travel',
     eyebrow: 'The Round · Phase IV',
     subtitle: 'Choose where the path leads.',
@@ -145,6 +150,7 @@ export const PHASES: Phase[] = [
   },
   {
     name: 'Encounter',
+    abbr: 'Encntr',
     slug: 'encounter',
     eyebrow: 'The Round · Phase V',
     subtitle: 'Enemies draw near.',
@@ -168,6 +174,7 @@ export const PHASES: Phase[] = [
   },
   {
     name: 'Combat',
+    abbr: 'Combat',
     slug: 'combat',
     eyebrow: 'The Round · Phase VI',
     subtitle: 'Steel meets shadow.',
@@ -217,6 +224,7 @@ export const PHASES: Phase[] = [
   },
   {
     name: 'Refresh',
+    abbr: 'Rfrsh',
     slug: 'refresh',
     eyebrow: 'The Round · Phase VII',
     subtitle: 'The darkness deepens; rest what can be rested.',

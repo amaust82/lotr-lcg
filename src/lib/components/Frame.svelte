@@ -16,11 +16,13 @@
 
   let {
     variant = 'default',
+    corners = true,
     class: className = '',
     innerClass = '',
     children,
   }: {
     variant?: 'default' | 'encounter' | 'location' | 'parchment' | 'section';
+    corners?: boolean;
     class?: string;
     innerClass?: string;
     children?: Snippet;
@@ -28,10 +30,12 @@
 </script>
 
 <div class="frame frame--{variant} {className}">
-  <span class="frame__corner frame__corner--tl" aria-hidden="true"></span>
-  <span class="frame__corner frame__corner--tr" aria-hidden="true"></span>
-  <span class="frame__corner frame__corner--bl" aria-hidden="true"></span>
-  <span class="frame__corner frame__corner--br" aria-hidden="true"></span>
+  {#if corners}
+    <span class="frame__corner frame__corner--tl" aria-hidden="true"></span>
+    <span class="frame__corner frame__corner--tr" aria-hidden="true"></span>
+    <span class="frame__corner frame__corner--bl" aria-hidden="true"></span>
+    <span class="frame__corner frame__corner--br" aria-hidden="true"></span>
+  {/if}
 
   <div class="frame__body {innerClass}">
     {@render children?.()}

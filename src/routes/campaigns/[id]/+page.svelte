@@ -108,7 +108,7 @@
 </script>
 
 <svelte:head>
-  <title>{playthrough?.name ?? 'Campaign'} — LOTR LCG Companion</title>
+  <title>{playthrough?.name ?? 'Campaign'} — LOTR LCG Wayfellow</title>
 </svelte:head>
 
 <div class="page">
@@ -129,7 +129,7 @@
         <span class="progress-label">scenarios completed</span>
       </div>
       <div class="progress-track" role="progressbar" aria-valuenow={progressPct} aria-valuemin={0} aria-valuemax={100} aria-label="Campaign progress">
-        <div class="progress-fill" style="width: {progressPct}%"></div>
+        <div class="progress-fill" style="--progress: {progressPct / 100}"></div>
       </div>
     </div>
 
@@ -248,15 +248,17 @@
 .back {
   flex-shrink: 0;
   font-family: var(--font-display-sc);
-  font-size: 11px;
-  letter-spacing: var(--tracking-eyebrow);
-  color: var(--gold-deep);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: var(--parchment);
   text-decoration: none;
   text-transform: uppercase;
   padding-top: 5px;
+  opacity: 0.65;
+  transition: opacity var(--duration-fast) var(--ease-out);
 }
 
-.back:hover { color: var(--gold); }
+.back:hover { opacity: 1; }
 
 .header-text {
   display: flex;
@@ -320,9 +322,12 @@
 
 .progress-fill {
   height: 100%;
+  width: 100%;
   background: var(--gold);
   border-radius: 2px;
-  transition: width var(--duration-slow) var(--ease-out);
+  transform: scaleX(var(--progress, 0));
+  transform-origin: left;
+  transition: transform var(--duration-slow) var(--ease-out);
 }
 
 /* ── Scenarios ── */

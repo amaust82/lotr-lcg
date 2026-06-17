@@ -119,6 +119,35 @@
   --shadow-phone:  0 32px 72px -20px rgba(0,0,0,.88);
 
   /* ----------------------------------------------------------
+     FRAME COMPONENT TOKENS
+     ---------------------------------------------------------- */
+
+  /* Structure */
+  --frame-width:       1px;
+  --frame-inner-width: 1px;
+  --frame-gap:         3px;
+  --frame-corner-size: 10px;
+
+  /* Color aliases (used by Frame.svelte variant system) */
+  --color-border:       color-mix(in srgb, var(--gold-deep) 65%, transparent);
+  --color-border-faint: color-mix(in srgb, var(--gold) 18%, transparent);
+  --color-gold:         var(--gold-deep);
+  --color-gold-bright:  var(--gold-hi);
+  --color-gold-dim:     color-mix(in srgb, var(--gold-deep) 55%, transparent);
+  --color-parchment:    var(--parchment);
+
+  /* Shadows */
+  --shadow-gold-glow: 0 0 20px color-mix(in srgb, var(--gold) 30%, transparent);
+
+  /* Encounter (tactics-red) variant */
+  --color-tactics-border: oklch(0.46 0.14 28);
+  --color-tactics:        oklch(0.76 0.17 28);
+
+  /* Location (lore-green) variant */
+  --color-lore-border: oklch(0.46 0.11 145);
+  --color-lore:        oklch(0.76 0.14 145);
+
+  /* ----------------------------------------------------------
      Z-INDEX
      ---------------------------------------------------------- */
   --z-dropdown: 100;

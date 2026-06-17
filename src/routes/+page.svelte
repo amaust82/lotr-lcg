@@ -3,39 +3,45 @@
 </script>
 
 <svelte:head>
-  <title>LOTR LCG Companion</title>
+  <title>LOTR LCG Wayfellow</title>
 </svelte:head>
 
 <div class="home">
-  <h1 class="title">LOTR LCG<br>Companion</h1>
+  <div class="home-header">
+    <h1 class="title">
+      <span class="title-product">LOTR LCG</span>
+      <span class="title-name">Wayfellow</span>
+    </h1>
+    <span class="leaf" aria-hidden="true">❧</span>
+  </div>
 
   <nav class="tiles" aria-label="Main navigation">
-    <a class="tile-link" href="/turn-guide/resource">
-      <Frame class="tile-frame">
-        <div class="tile-body">
-          <span class="tile-eyebrow">Interactive</span>
-          <span class="tile-name">Turn Guide</span>
+    <a class="tile-link tile-link--primary" href="/turn-guide/resource">
+      <Frame variant="parchment" corners={false} class="tile-frame">
+        <div class="tile-body tile-body--primary">
+          <span class="tile-name tile-name--primary">Turn Guide</span>
+          <span class="tile-desc">Step through each phase of play</span>
         </div>
       </Frame>
     </a>
 
-    <a class="tile-link" href="/collection">
-      <Frame class="tile-frame">
-        <div class="tile-body">
-          <span class="tile-eyebrow">Manage</span>
-          <span class="tile-name">Collection</span>
-        </div>
-      </Frame>
-    </a>
+    <div class="tiles-row">
+      <a class="tile-link" href="/collection">
+        <Frame corners={false} class="tile-frame">
+          <div class="tile-body">
+            <span class="tile-name">Collection</span>
+          </div>
+        </Frame>
+      </a>
 
-    <a class="tile-link" href="/campaigns">
-      <Frame class="tile-frame">
-        <div class="tile-body">
-          <span class="tile-eyebrow">Track</span>
-          <span class="tile-name">Campaigns</span>
-        </div>
-      </Frame>
-    </a>
+      <a class="tile-link" href="/campaigns">
+        <Frame corners={false} class="tile-frame">
+          <div class="tile-body">
+            <span class="tile-name">Campaigns</span>
+          </div>
+        </Frame>
+      </a>
+    </div>
   </nav>
 </div>
 
@@ -47,27 +53,81 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 48px;
+  gap: 44px;
   padding: 32px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Warm atmospheric glow from above — candlelight framing the title */
+.home::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 80% 55% at 50% -5%,
+    color-mix(in srgb, var(--gold-deep) 22%, transparent) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.home-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+  z-index: 1;
 }
 
 .title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  text-align: center;
+}
+
+.title-product {
+  font-family: var(--font-display-sc);
+  font-size: 13px;
+  letter-spacing: 0.38em;
+  text-transform: uppercase;
+  color: var(--gold-hi);
+  line-height: 1;
+}
+
+.title-name {
   font-family: var(--font-display);
-  font-size: clamp(28px, 8vw, 42px);
+  font-size: clamp(34px, 10vw, 50px);
   font-weight: 400;
   color: var(--parchment-hi);
-  text-align: center;
-  line-height: 1.15;
-  letter-spacing: 0.02em;
-  margin: 0;
+  letter-spacing: 0.01em;
+  line-height: 1;
 }
+
+.leaf {
+  font-family: var(--font-body);
+  font-size: 18px;
+  color: var(--gold);
+  display: block;
+  text-align: center;
+  margin-top: 4px;
+}
+
+/* ── Navigation tiles ──────────────────────── */
 
 .tiles {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
   width: 100%;
   max-width: 340px;
+  position: relative;
+  z-index: 1;
 }
 
 .tile-link {
@@ -81,26 +141,50 @@
     box-shadow var(--duration-base) var(--ease-out);
 }
 
-.tile-body {
-  padding: 16px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+.tiles-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
 
-.tile-eyebrow {
-  font-family: var(--font-display-sc);
-  font-size: 9px;
-  letter-spacing: var(--tracking-eyebrow);
-  text-transform: uppercase;
-  color: var(--gold-deep);
+/* ── Tile body ─────────────────────────────── */
+
+.tile-body {
+  padding: 15px 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 52px;
+}
+
+.tile-body--primary {
+  padding: 22px 22px 20px;
+  gap: 7px;
+  min-height: unset;
 }
 
 .tile-name {
   font-family: var(--font-display-sc);
-  font-size: 14px;
-  letter-spacing: 0.18em;
+  font-size: 12px;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--parchment);
+}
+
+/* Primary tile sits on parchment — needs dark ink */
+.tile-name--primary {
+  font-family: var(--font-display);
+  font-size: 22px;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--ink);
+  line-height: 1.1;
+}
+
+.tile-desc {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.45;
 }
 </style>

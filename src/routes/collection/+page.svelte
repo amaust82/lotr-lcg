@@ -25,7 +25,7 @@
 </script>
 
 <svelte:head>
-  <title>Collection Manager — LOTR LCG Companion</title>
+  <title>Collection Manager — LOTR LCG Wayfellow</title>
 </svelte:head>
 
 <div class="page">
@@ -57,7 +57,7 @@
           aria-label={coreSet.name}
           disabled
         >
-          <Frame class="tile-frame">
+          <Frame corners={false} class="tile-frame">
             <div class="tile-body tile-body--horizontal">
               <img
                 class="tile-img tile-img--core"
@@ -87,7 +87,7 @@
             aria-label={product.name}
             onclick={() => toggle(product)}
           >
-            <Frame class="tile-frame">
+            <Frame corners={false} class="tile-frame">
               <div class="tile-body">
                 <img
                   class="tile-img"
@@ -125,11 +125,17 @@
 
 .back {
   font-family: var(--font-display-sc);
-  font-size: 11px;
-  letter-spacing: var(--tracking-eyebrow);
-  color: var(--gold-deep);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: var(--parchment);
   text-decoration: none;
   text-transform: uppercase;
+  opacity: 0.65;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.back:hover {
+  opacity: 1;
 }
 
 .title {

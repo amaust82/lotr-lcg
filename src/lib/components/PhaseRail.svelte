@@ -8,7 +8,7 @@
   }: { currentPhase: number; phases: Phase[] } = $props();
 
   const PHASE_COUNT = 7;
-  const cx = 22;
+  const cx = 32;
   const nodeY = [60, 160, 260, 360, 460, 560, 650];
 
   const reducedMotion =
@@ -79,7 +79,7 @@
 <nav class="rail" aria-label="Phase navigation">
   <svg
     class="rail__svg"
-    viewBox="0 0 44 700"
+    viewBox="0 0 64 700"
     preserveAspectRatio="xMidYMid meet"
     overflow="visible"
   >
@@ -105,7 +105,7 @@
       <path class="trail trail--todo" d={todoPaths} aria-hidden="true" />
     {/if}
 
-    <!-- Nodes -->
+    <!-- Waypoint markers -->
     {#each nodeY as y, i}
       {@const slug = phases[i]?.slug ?? ''}
       {@const name = phases[i]?.name ?? ''}
@@ -119,14 +119,16 @@
         <circle class="node__hit" cx={cx} cy={y} r="18" />
 
         {#if i < currentPhase}
-          <circle class="node node--done" cx={cx} cy={y} r="5.5" />
+          <rect class="waypoint waypoint--done" x={cx - 28} y={y - 9} width="56" height="18" rx="3" />
+          <text class="waypoint-label waypoint-label--done" x={cx} y={y + 1}>{phases[i]?.abbr}</text>
         {:else if i === currentPhase}
-          <circle class="node node--cur" cx={cx} cy={y} r="8" />
-          <circle class="node node--cur-ring" cx={cx} cy={y} r="11" />
+          <rect class="waypoint-ring" x={cx - 32} y={y - 14} width="64" height="28" rx="6" />
+          <rect class="waypoint waypoint--cur" x={cx - 29} y={y - 11} width="58" height="22" rx="4" />
+          <text class="waypoint-label waypoint-label--cur" x={cx} y={y + 1}>{phases[i]?.abbr}</text>
         {:else}
-          <circle class="node node--todo" cx={cx} cy={y} r="5.5" />
+          <rect class="waypoint waypoint--todo" x={cx - 28} y={y - 9} width="56" height="18" rx="3" />
+          <text class="waypoint-label waypoint-label--todo" x={cx} y={y + 1}>{phases[i]?.abbr}</text>
         {/if}
-        <text class="node-tooltip" x={cx + 16} y={y + 4}>{name}</text>
       </a>
     {/each}
   </svg>
@@ -135,7 +137,7 @@
 <style>
 .rail {
   position: relative;
-  width: 44px;
+  width: 64px;
   height: 700px;
   flex-shrink: 0;
 }
@@ -192,70 +194,94 @@
   outline: none;
 }
 
-.node-link:focus-visible .node--todo,
-.node-link:hover .node--todo {
-  fill: var(--parchment);
-  stroke: rgba(176,141,63,0.7);
-  stroke-width: 2;
-}
-
-.node-link:focus-visible .node--done,
-.node-link:hover .node--done {
-  fill: var(--gold-deep);
-}
-
 /* Invisible hit area */
 .node__hit {
   fill: transparent;
 }
 
-/* Phase name tooltip — hidden until hover/focus */
-.node-tooltip {
-  font-family: var(--font-display-sc, 'Cinzel', serif);
-  font-size: 10px;
-  fill: var(--gold-deep, #8a6a2e);
-  stroke: var(--parchment, #ecdfbf);
-  stroke-width: 4px;
-  paint-order: stroke fill;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 150ms ease;
-  dominant-baseline: middle;
-  user-select: none;
+/* Waypoint marker boxes */
+.waypoint {
+  transition: fill var(--duration-base) var(--ease-out), stroke var(--duration-base) var(--ease-out);
 }
 
-.node-link:hover .node-tooltip,
-.node-link:focus-visible .node-tooltip {
-  opacity: 1;
-}
-
-.node--done {
+.waypoint--done {
   fill: var(--ink);
 }
 
-.node--todo {
+.waypoint--cur {
+  fill: var(--ink);
+}
+
+.waypoint--todo {
   fill: var(--parchment-hi);
-  stroke: rgba(44,33,23,.6);
+  stroke: rgba(44, 33, 23, 0.35);
   stroke-width: 1.5;
 }
 
-.node--cur {
-  fill: var(--ink);
-}
-
-.node--cur-ring {
+/* Pulsing ring around the current waypoint */
+.waypoint-ring {
   fill: none;
-  stroke: rgba(176,141,63,.4);
-  stroke-width: 3;
-  animation: node-ring-pulse 3s ease-in-out infinite;
+  stroke: rgba(176, 141, 63, 0.4);
+  stroke-width: 1.5;
+  animation: waypoint-ring-pulse 3s ease-in-out infinite;
 }
 
-@keyframes node-ring-pulse {
-  0%, 100% { stroke-opacity: 0.4; }
-  50%       { stroke-opacity: 0.85; }
+@keyframes waypoint-ring-pulse {
+  0%, 100% { stroke-opacity: 0.35; }
+  50%       { stroke-opacity: 0.8; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .node--cur-ring { animation: none; }
+  .waypoint-ring { animation: none; }
+}
+
+/* Labels inside waypoints */
+.waypoint-label {
+  font-family: var(--font-display-sc, 'Cinzel', serif);
+  text-anchor: middle;
+  dominant-baseline: middle;
+  pointer-events: none;
+  user-select: none;
+  transition: fill var(--duration-base) var(--ease-out);
+}
+
+.waypoint-label--done {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  fill: var(--parchment-hi);
+}
+
+.waypoint-label--cur {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  fill: var(--parchment-hi);
+}
+
+.waypoint-label--todo {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  fill: rgba(44, 33, 23, 0.45);
+}
+
+/* Hover / focus effects */
+.node-link:hover .waypoint--todo,
+.node-link:focus-visible .waypoint--todo {
+  fill: color-mix(in srgb, var(--ink) 10%, var(--parchment-hi));
+  stroke: rgba(44, 33, 23, 0.6);
+}
+
+.node-link:hover .waypoint-label--todo,
+.node-link:focus-visible .waypoint-label--todo {
+  fill: rgba(44, 33, 23, 0.7);
+}
+
+.node-link:hover .waypoint--done,
+.node-link:focus-visible .waypoint--done {
+  fill: var(--gold-deep);
+}
+
+.node-link:hover .waypoint-label--done,
+.node-link:focus-visible .waypoint-label--done {
+  fill: var(--parchment-hi);
 }
 </style>
