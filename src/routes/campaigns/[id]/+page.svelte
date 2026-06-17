@@ -52,6 +52,15 @@
     upsertScenario(scenarioId, { notes: value });
   }
 
+  function getDatePlayed(scenarioId: string) {
+    return getRecord(scenarioId)?.datePlayed ?? '';
+  }
+
+  function handleDatePlayed(scenarioId: string, e: Event) {
+    const value = (e.target as HTMLInputElement).value;
+    upsertScenario(scenarioId, { datePlayed: value });
+  }
+
   function getCampaignLogValue(scenarioId: string, fieldId: string, type: 'checkbox' | 'text' | 'select'): boolean | string {
     const entry = getRecord(scenarioId)?.campaignLog?.find((e) => e.fieldId === fieldId);
     if (entry) return entry.value;
@@ -109,6 +118,51 @@
     const hero = deck.heroSlots[slotIndex];
     playthroughs.updateHeroSlot(playthrough.id, deckId, slotIndex, { fallen: !hero.fallen });
   }
+
+  let boonInputs: Record<string, string> = $state({});
+  let burdenInputs: Record<string, string> = $state({});
+
+  function boonKey(deckId: string, slotIndex: number) { return `${deckId}:${slotIndex}`; }
+
+  function addBoon(deckId: string, slotIndex: number) {
+    if (!playthrough) return;
+    const key = boonKey(deckId, slotIndex);
+    const val = (boonInputs[key] ?? '').trim();
+    if (!val) return;
+    const deck = playthrough.decks.find((d) => d.id === deckId);
+    if (!deck) return;
+    const hero = deck.heroSlots[slotIndex];
+    playthroughs.updateHeroSlot(playthrough.id, deckId, slotIndex, { boons: [...hero.boons, val] });
+    boonInputs[key] = '';
+  }
+
+  function removeBoon(deckId: string, slotIndex: number, val: string) {
+    if (!playthrough) return;
+    const deck = playthrough.decks.find((d) => d.id === deckId);
+    if (!deck) return;
+    const hero = deck.heroSlots[slotIndex];
+    playthroughs.updateHeroSlot(playthrough.id, deckId, slotIndex, { boons: hero.boons.filter((b) => b !== val) });
+  }
+
+  function addBurden(deckId: string, slotIndex: number) {
+    if (!playthrough) return;
+    const key = boonKey(deckId, slotIndex);
+    const val = (burdenInputs[key] ?? '').trim();
+    if (!val) return;
+    const deck = playthrough.decks.find((d) => d.id === deckId);
+    if (!deck) return;
+    const hero = deck.heroSlots[slotIndex];
+    playthroughs.updateHeroSlot(playthrough.id, deckId, slotIndex, { burdens: [...hero.burdens, val] });
+    burdenInputs[key] = '';
+  }
+
+  function removeBurden(deckId: string, slotIndex: number, val: string) {
+    if (!playthrough) return;
+    const deck = playthrough.decks.find((d) => d.id === deckId);
+    if (!deck) return;
+    const hero = deck.heroSlots[slotIndex];
+    playthroughs.updateHeroSlot(playthrough.id, deckId, slotIndex, { burdens: hero.burdens.filter((b) => b !== val) });
+  }
 </script>
 
 <svelte:head>
@@ -154,6 +208,15 @@
               <option value="failed">Failed</option>
             </select>
             <span class="scenario-name">{scenario.name}</span>
+            {#if status !== 'not_attempted'}
+              <input
+                type="date"
+                class="date-played-input"
+                aria-label="Date played for {scenario.name}"
+                value={getDatePlayed(scenario.id)}
+                oninput={(e) => handleDatePlayed(scenario.id, e)}
+              />
+            {/if}
           </div>
           <textarea
             class="notes"
@@ -232,6 +295,7 @@
 
           <div class="hero-slots">
             {#each deck.heroSlots as hero, slotIndex (slotIndex)}
+              {@const slotKey = boonKey(deck.id, slotIndex)}
               <div class="hero-slot" data-fallen={hero.fallen ? 'true' : undefined}>
                 <input
                   class="hero-name-input"
@@ -253,6 +317,54 @@
                 {/if}
                 <button class="remove-btn" onclick={() => removeHeroSlot(deck.id, slotIndex)} aria-label="Remove Hero">×</button>
               </div>
+              {#if isSaga}
+                <div class="boon-burden-row">
+                  <div class="chip-group">
+                    <span class="chip-label">Boons</span>
+                    <div class="chips">
+                      {#each hero.boons as boon (boon)}
+                        <span class="chip chip-boon">
+                          {boon}
+                          <button class="chip-remove" aria-label="Remove boon {boon}" onclick={() => removeBoon(deck.id, slotIndex, boon)}>×</button>
+                        </span>
+                      {/each}
+                    </div>
+                    <div class="chip-add-row">
+                      <input
+                        type="text"
+                        class="chip-input"
+                        aria-label="Add boon"
+                        placeholder="Add boon…"
+                        value={boonInputs[slotKey] ?? ''}
+                        oninput={(e) => { boonInputs[slotKey] = (e.target as HTMLInputElement).value; }}
+                      />
+                      <button class="chip-add-btn" aria-label="Add boon" onclick={() => addBoon(deck.id, slotIndex)}>+</button>
+                    </div>
+                  </div>
+                  <div class="chip-group">
+                    <span class="chip-label">Burdens</span>
+                    <div class="chips">
+                      {#each hero.burdens as burden (burden)}
+                        <span class="chip chip-burden">
+                          {burden}
+                          <button class="chip-remove" aria-label="Remove burden {burden}" onclick={() => removeBurden(deck.id, slotIndex, burden)}>×</button>
+                        </span>
+                      {/each}
+                    </div>
+                    <div class="chip-add-row">
+                      <input
+                        type="text"
+                        class="chip-input"
+                        aria-label="Add burden"
+                        placeholder="Add burden…"
+                        value={burdenInputs[slotKey] ?? ''}
+                        oninput={(e) => { burdenInputs[slotKey] = (e.target as HTMLInputElement).value; }}
+                      />
+                      <button class="chip-add-btn" aria-label="Add burden" onclick={() => addBurden(deck.id, slotIndex)}>+</button>
+                    </div>
+                  </div>
+                </div>
+              {/if}
             {/each}
 
             {#if deck.heroSlots.length < 3}
@@ -789,5 +901,141 @@
 .add-hero-btn:hover {
   color: var(--gold);
   border-color: color-mix(in srgb, var(--gold) 35%, transparent);
+}
+
+/* ── Date played ── */
+
+.date-played-input {
+  flex-shrink: 0;
+  font-family: var(--font-display-sc);
+  font-size: 10px;
+  letter-spacing: var(--tracking-eyebrow);
+  color: color-mix(in srgb, var(--gold-deep) 70%, var(--parchment));
+  background: color-mix(in srgb, var(--gold-deep) 8%, var(--canvas));
+  border: 1px solid color-mix(in srgb, var(--gold) 20%, transparent);
+  border-radius: var(--radius-md);
+  padding: 4px 8px;
+  outline: none;
+  transition: border-color var(--duration-base);
+  color-scheme: dark;
+}
+
+.date-played-input:focus {
+  border-color: color-mix(in srgb, var(--gold) 40%, transparent);
+}
+
+/* ── Boon / Burden chips ── */
+
+.boon-burden-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+  padding-left: 4px;
+}
+
+.chip-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.chip-label {
+  font-family: var(--font-display-sc);
+  font-size: 9px;
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--gold-deep);
+  opacity: 0.55;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-body, sans-serif);
+  font-size: 11px;
+  padding: 2px 7px 2px 8px;
+  border-radius: 999px;
+  line-height: 1.4;
+}
+
+.chip-boon {
+  background: color-mix(in srgb, var(--gold) 12%, var(--canvas));
+  border: 1px solid color-mix(in srgb, var(--gold) 30%, transparent);
+  color: var(--gold);
+}
+
+.chip-burden {
+  background: color-mix(in srgb, #c04040 10%, var(--canvas));
+  border: 1px solid color-mix(in srgb, #c04040 35%, transparent);
+  color: #d07070;
+}
+
+.chip-remove {
+  background: none;
+  border: none;
+  padding: 0;
+  line-height: 1;
+  font-size: 13px;
+  cursor: pointer;
+  opacity: 0.5;
+  color: inherit;
+  transition: opacity var(--duration-fast);
+}
+
+.chip-remove:hover { opacity: 1; }
+
+.chip-add-row {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.chip-input {
+  flex: 1;
+  font-family: var(--font-body, sans-serif);
+  font-size: 12px;
+  color: var(--parchment);
+  background: color-mix(in srgb, var(--gold-deep) 6%, var(--canvas));
+  border: 1px solid color-mix(in srgb, var(--gold) 14%, transparent);
+  border-radius: 4px;
+  padding: 4px 8px;
+  outline: none;
+  transition: border-color var(--duration-base);
+}
+
+.chip-input:focus {
+  border-color: color-mix(in srgb, var(--gold) 35%, transparent);
+}
+
+.chip-input::placeholder {
+  color: var(--gold-deep);
+  opacity: 0.35;
+}
+
+.chip-add-btn {
+  flex-shrink: 0;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--gold-deep);
+  background: none;
+  border: 1px solid color-mix(in srgb, var(--gold) 20%, transparent);
+  border-radius: 4px;
+  padding: 2px 8px;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity var(--duration-fast), border-color var(--duration-fast);
+}
+
+.chip-add-btn:hover {
+  opacity: 1;
+  border-color: color-mix(in srgb, var(--gold) 40%, transparent);
 }
 </style>

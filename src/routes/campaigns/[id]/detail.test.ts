@@ -3,6 +3,7 @@ import { describe, it, expect, afterEach, beforeEach } from 'vitest';
 import { render, cleanup, fireEvent } from '@testing-library/svelte';
 import { get } from 'svelte/store';
 import { playthroughs } from '$lib/stores/playthroughs';
+import type { HeroSlot } from '$lib/types/playthrough';
 import Page from './+page.svelte';
 
 const REVISED_CORE = 'revised-core-set';
@@ -368,6 +369,40 @@ describe('Campaign detail — select-type Campaign Log fields', () => {
 	});
 });
 
+describe('Campaign detail — Date played', () => {
+	afterEach(() => { cleanup(); localStorage.clear(); get(playthroughs).forEach((p) => playthroughs.deletePlaythrough(p.id)); });
+	beforeEach(() => { localStorage.clear(); get(playthroughs).forEach((p) => playthroughs.deletePlaythrough(p.id)); });
+
+	it('date input is absent when scenario is not_attempted', () => {
+		seedPlaythrough();
+		const { queryByLabelText } = render(Page, { props: { data: { id: 'test-pt-1' } } });
+		expect(queryByLabelText(/date played for passage through mirkwood/i)).not.toBeInTheDocument();
+	});
+
+	it('date input appears when scenario is completed', async () => {
+		seedPlaythrough();
+		const { getAllByRole, getByLabelText } = render(Page, { props: { data: { id: 'test-pt-1' } } });
+		await fireEvent.change(getAllByRole('combobox', { name: /status for/i })[0], { target: { value: 'completed' } });
+		expect(getByLabelText(/date played for passage through mirkwood/i)).toBeInTheDocument();
+	});
+
+	it('date input appears when scenario is failed', async () => {
+		seedPlaythrough();
+		const { getAllByRole, getByLabelText } = render(Page, { props: { data: { id: 'test-pt-1' } } });
+		await fireEvent.change(getAllByRole('combobox', { name: /status for/i })[0], { target: { value: 'failed' } });
+		expect(getByLabelText(/date played for passage through mirkwood/i)).toBeInTheDocument();
+	});
+
+	it('selecting a date persists datePlayed to the store', async () => {
+		seedPlaythrough({ scenarios: [{ scenarioId: 'rcs-passage-through-mirkwood', status: 'completed' as const, campaignLog: [] }] });
+		const { getByLabelText } = render(Page, { props: { data: { id: 'test-pt-1' } } });
+		await fireEvent.input(getByLabelText(/date played for passage through mirkwood/i), { target: { value: '2026-06-15' } });
+		const record = get(playthroughs).find((p) => p.id === 'test-pt-1')!
+			.scenarios.find((s) => s.scenarioId === 'rcs-passage-through-mirkwood');
+		expect(record?.datePlayed).toBe('2026-06-15');
+	});
+});
+
 describe('Campaign detail — Campaign Mode gating', () => {
 	const SAGA_PRODUCT = 'fellowship-of-the-ring-saga';
 	const NON_CAMPAIGN_PRODUCT = 'angmar-awakened-hero';
@@ -422,5 +457,90 @@ describe('Campaign detail — Campaign Mode gating', () => {
 		await fireEvent.click(getByRole('button', { name: /toggle fallen/i }));
 		const stored = get(playthroughs).find((p) => p.id === 'pt-saga')!;
 		expect(stored.decks[0].heroSlots[0].fallen).toBe(true);
+	});
+});
+
+describe('Campaign detail — Boon/burden on hero slots', () => {
+	const SAGA_PRODUCT = 'fellowship-of-the-ring-saga';
+	const NON_SAGA_PRODUCT = 'angmar-awakened-hero';
+
+	afterEach(() => { cleanup(); localStorage.clear(); get(playthroughs).forEach((p) => playthroughs.deletePlaythrough(p.id)); });
+	beforeEach(() => { localStorage.clear(); get(playthroughs).forEach((p) => playthroughs.deletePlaythrough(p.id)); });
+
+	function seedSaga(heroSlots: HeroSlot[] = [{ heroName: 'Frodo', boons: [], burdens: [], fallen: false }]) {
+		const pt = {
+			id: 'pt-saga',
+			name: 'Saga Run',
+			productId: SAGA_PRODUCT,
+			decks: [{ id: 'd1', heroSlots }],
+			scenarios: [],
+			createdAt: '2026-01-01T00:00:00.000Z',
+		};
+		playthroughs.createPlaythrough(pt);
+		return pt;
+	}
+
+	it('boon/burden inputs are absent for non-Saga product', () => {
+		playthroughs.createPlaythrough({
+			id: 'pt-non-saga',
+			name: 'Run',
+			productId: NON_SAGA_PRODUCT,
+			decks: [{ id: 'd1', heroSlots: [{ heroName: 'Aragorn', boons: [], burdens: [], fallen: false }] }],
+			scenarios: [],
+			createdAt: '2026-01-01T00:00:00.000Z',
+		});
+		const { queryByLabelText } = render(Page, { props: { data: { id: 'pt-non-saga' } } });
+		expect(queryByLabelText(/add boon/i)).not.toBeInTheDocument();
+		expect(queryByLabelText(/add burden/i)).not.toBeInTheDocument();
+	});
+
+	it('boon and burden inputs appear for Saga product', () => {
+		seedSaga();
+		const { getAllByRole } = render(Page, { props: { data: { id: 'pt-saga' } } });
+		expect(getAllByRole('textbox', { name: /add boon/i })[0]).toBeInTheDocument();
+		expect(getAllByRole('textbox', { name: /add burden/i })[0]).toBeInTheDocument();
+	});
+
+	it('typing a boon and clicking Add persists it to the store', async () => {
+		seedSaga();
+		const { getAllByRole, getByRole } = render(Page, { props: { data: { id: 'pt-saga' } } });
+		await fireEvent.input(getAllByRole('textbox', { name: /add boon/i })[0], { target: { value: 'Sting' } });
+		await fireEvent.click(getByRole('button', { name: /add boon/i }));
+		const stored = get(playthroughs).find((p) => p.id === 'pt-saga')!;
+		expect(stored.decks[0].heroSlots[0].boons).toContain('Sting');
+	});
+
+	it('typing a burden and clicking Add persists it to the store', async () => {
+		seedSaga();
+		const { getAllByRole, getByRole } = render(Page, { props: { data: { id: 'pt-saga' } } });
+		await fireEvent.input(getAllByRole('textbox', { name: /add burden/i })[0], { target: { value: 'Corruption' } });
+		await fireEvent.click(getByRole('button', { name: /add burden/i }));
+		const stored = get(playthroughs).find((p) => p.id === 'pt-saga')!;
+		expect(stored.decks[0].heroSlots[0].burdens).toContain('Corruption');
+	});
+
+	it('clicking remove on a boon chip removes it from the store', async () => {
+		seedSaga([{ heroName: 'Frodo', boons: ['Sting', 'Mithril Coat'], burdens: [], fallen: false }]);
+		const { getByRole } = render(Page, { props: { data: { id: 'pt-saga' } } });
+		await fireEvent.click(getByRole('button', { name: /remove boon sting/i }));
+		const stored = get(playthroughs).find((p) => p.id === 'pt-saga')!;
+		expect(stored.decks[0].heroSlots[0].boons).not.toContain('Sting');
+		expect(stored.decks[0].heroSlots[0].boons).toContain('Mithril Coat');
+	});
+
+	it('clicking remove on a burden chip removes it from the store', async () => {
+		seedSaga([{ heroName: 'Frodo', boons: [], burdens: ['Corruption', 'Weariness'], fallen: false }]);
+		const { getByRole } = render(Page, { props: { data: { id: 'pt-saga' } } });
+		await fireEvent.click(getByRole('button', { name: /remove burden corruption/i }));
+		const stored = get(playthroughs).find((p) => p.id === 'pt-saga')!;
+		expect(stored.decks[0].heroSlots[0].burdens).not.toContain('Corruption');
+		expect(stored.decks[0].heroSlots[0].burdens).toContain('Weariness');
+	});
+
+	it('existing boons and burdens render as chips', () => {
+		seedSaga([{ heroName: 'Frodo', boons: ['Sting'], burdens: ['Corruption'], fallen: false }]);
+		const { getByText } = render(Page, { props: { data: { id: 'pt-saga' } } });
+		expect(getByText('Sting')).toBeInTheDocument();
+		expect(getByText('Corruption')).toBeInTheDocument();
 	});
 });
