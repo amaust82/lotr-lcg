@@ -61,30 +61,19 @@ describe('Campaign detail screen', () => {
 		expect(getByText(/0\s*\/\s*3/)).toBeInTheDocument();
 	});
 
-	it('status toggle advances: not_attempted → completed → failed → not_attempted', async () => {
+	it('status select has options for completed, failed, and not played', () => {
 		seedPlaythrough();
 		const { getAllByRole } = render(Page, { props: { data: { id: 'test-pt-1' } } });
-		const toggleBtns = getAllByRole('button', { name: /toggle status/i });
-		const btn = toggleBtns[0];
-
-		// Initial state
-		expect(btn).toHaveAttribute('aria-label', expect.stringMatching(/not.attempted/i));
-
-		await fireEvent.click(btn);
-		expect(btn).toHaveAttribute('aria-label', expect.stringMatching(/completed/i));
-
-		await fireEvent.click(btn);
-		expect(btn).toHaveAttribute('aria-label', expect.stringMatching(/failed/i));
-
-		await fireEvent.click(btn);
-		expect(btn).toHaveAttribute('aria-label', expect.stringMatching(/not.attempted/i));
+		const selects = getAllByRole('combobox', { name: /status for/i });
+		expect(selects[0]).toBeInTheDocument();
+		expect(selects[0]).toHaveValue('not_attempted');
 	});
 
-	it('status toggle updates the store', async () => {
+	it('changing status select to completed updates the store', async () => {
 		seedPlaythrough();
 		const { getAllByRole } = render(Page, { props: { data: { id: 'test-pt-1' } } });
-		const toggleBtns = getAllByRole('button', { name: /toggle status/i });
-		await fireEvent.click(toggleBtns[0]);
+		const selects = getAllByRole('combobox', { name: /status for/i });
+		await fireEvent.change(selects[0], { target: { value: 'completed' } });
 
 		const stored = get(playthroughs).find((p) => p.id === 'test-pt-1')!;
 		const firstScenario = stored.scenarios.find(
@@ -93,10 +82,23 @@ describe('Campaign detail screen', () => {
 		expect(firstScenario?.status).toBe('completed');
 	});
 
-	it('progress summary updates after toggling a scenario to completed', async () => {
+	it('changing status select to failed updates the store', async () => {
+		seedPlaythrough();
+		const { getAllByRole } = render(Page, { props: { data: { id: 'test-pt-1' } } });
+		const selects = getAllByRole('combobox', { name: /status for/i });
+		await fireEvent.change(selects[0], { target: { value: 'failed' } });
+
+		const stored = get(playthroughs).find((p) => p.id === 'test-pt-1')!;
+		const firstScenario = stored.scenarios.find(
+			(s) => s.scenarioId === 'rcs-passage-through-mirkwood'
+		);
+		expect(firstScenario?.status).toBe('failed');
+	});
+
+	it('progress summary updates after selecting completed', async () => {
 		seedPlaythrough();
 		const { getAllByRole, getByText } = render(Page, { props: { data: { id: 'test-pt-1' } } });
-		await fireEvent.click(getAllByRole('button', { name: /toggle status/i })[0]);
+		await fireEvent.change(getAllByRole('combobox', { name: /status for/i })[0], { target: { value: 'completed' } });
 		expect(getByText(/1\s*\/\s*3/)).toBeInTheDocument();
 	});
 
@@ -247,8 +249,128 @@ describe('Campaign detail — Player management', () => {
 	});
 });
 
-describe('Campaign detail — Saga gating', () => {
+describe('Campaign detail — Campaign Log fields', () => {
+	afterEach(() => { cleanup(); localStorage.clear(); get(playthroughs).forEach((p) => playthroughs.deletePlaythrough(p.id)); });
+	beforeEach(() => { localStorage.clear(); get(playthroughs).forEach((p) => playthroughs.deletePlaythrough(p.id)); });
+
+	it('campaign log fields are hidden when scenario is not_attempted', () => {
+		seedPlaythrough();
+		const { queryByLabelText } = render(Page, { props: { data: { id: 'test-pt-1' } } });
+		expect(queryByLabelText(/Stage 3B: Beorn's Path/i)).not.toBeInTheDocument();
+	});
+
+	it('campaign log fields reveal when scenario is marked completed', async () => {
+		seedPlaythrough();
+		const { getAllByRole, getByLabelText } = render(Page, { props: { data: { id: 'test-pt-1' } } });
+		await fireEvent.change(getAllByRole('combobox', { name: /status for/i })[0], { target: { value: 'completed' } });
+		expect(getByLabelText(/Stage 3B: Beorn's Path/i)).toBeInTheDocument();
+		expect(getByLabelText(/Stage 3B: Don't Leave the Path/i)).toBeInTheDocument();
+	});
+
+	it('campaign log fields reveal when scenario is marked failed', async () => {
+		seedPlaythrough();
+		const { getAllByRole, getByLabelText } = render(Page, { props: { data: { id: 'test-pt-1' } } });
+		await fireEvent.change(getAllByRole('combobox', { name: /status for/i })[1], { target: { value: 'failed' } });
+		expect(getByLabelText(/Heroes with Valor attached/i)).toBeInTheDocument();
+	});
+
+	it('renders text fields for a scenario that has them (when played)', () => {
+		seedPlaythrough({ scenarios: [{ scenarioId: 'rcs-journey-along-the-anduin', status: 'completed' as const, campaignLog: [] }] });
+		const { getByLabelText } = render(Page, { props: { data: { id: 'test-pt-1' } } });
+		expect(getByLabelText(/Heroes with Valor attached/i)).toBeInTheDocument();
+		expect(getByLabelText(/Prisoner hero/i)).toBeInTheDocument();
+	});
+
+	it('checking a checkbox field persists to the store', async () => {
+		seedPlaythrough({ scenarios: [{ scenarioId: 'rcs-passage-through-mirkwood', status: 'completed' as const, campaignLog: [] }] });
+		const { getByLabelText } = render(Page, { props: { data: { id: 'test-pt-1' } } });
+		await fireEvent.click(getByLabelText(/Stage 3B: Beorn's Path/i));
+		const record = get(playthroughs).find((p) => p.id === 'test-pt-1')!
+			.scenarios.find((s) => s.scenarioId === 'rcs-passage-through-mirkwood');
+		expect(record?.campaignLog.find((e) => e.fieldId === 'stage-3b-beorns-path')?.value).toBe(true);
+	});
+
+	it('typing in a text field persists to the store', async () => {
+		seedPlaythrough({ scenarios: [{ scenarioId: 'rcs-journey-along-the-anduin', status: 'completed' as const, campaignLog: [] }] });
+		const { getByLabelText } = render(Page, { props: { data: { id: 'test-pt-1' } } });
+		await fireEvent.input(getByLabelText(/Prisoner hero/i), { target: { value: 'Aragorn' } });
+		const record = get(playthroughs).find((p) => p.id === 'test-pt-1')!
+			.scenarios.find((s) => s.scenarioId === 'rcs-journey-along-the-anduin');
+		expect(record?.campaignLog.find((e) => e.fieldId === 'prisoner')?.value).toBe('Aragorn');
+	});
+
+	it('campaign log fields reflect stored values on render', () => {
+		seedPlaythrough({
+			scenarios: [{
+				scenarioId: 'rcs-passage-through-mirkwood',
+				status: 'completed' as const,
+				campaignLog: [{ fieldId: 'stage-3b-beorns-path', value: true }],
+			}],
+		});
+		const { getByLabelText } = render(Page, { props: { data: { id: 'test-pt-1' } } });
+		expect((getByLabelText(/Stage 3B: Beorn's Path/i) as HTMLInputElement).checked).toBe(true);
+	});
+});
+
+describe('Campaign detail — select-type Campaign Log fields', () => {
+	const ANGMAR = 'angmar-awakened-campaign';
+
+	afterEach(() => { cleanup(); localStorage.clear(); get(playthroughs).forEach((p) => playthroughs.deletePlaythrough(p.id)); });
+	beforeEach(() => { localStorage.clear(); get(playthroughs).forEach((p) => playthroughs.deletePlaythrough(p.id)); });
+
+	function seedAngmar(scenarios: object[] = []) {
+		const pt = {
+			id: 'pt-angmar',
+			name: 'Angmar Run',
+			productId: ANGMAR,
+			decks: [],
+			scenarios,
+			createdAt: '2026-01-01T00:00:00.000Z',
+		};
+		playthroughs.createPlaythrough(pt);
+		return pt;
+	}
+
+	it('select-type field renders as a <select> dropdown when scenario is played', () => {
+		seedAngmar([{ scenarioId: 'aac-deadmens-dike', status: 'completed' as const, campaignLog: [] }]);
+		const { getByLabelText } = render(Page, { props: { data: { id: 'pt-angmar' } } });
+		const el = getByLabelText(/Boon chosen/i);
+		expect(el.tagName.toLowerCase()).toBe('select');
+	});
+
+	it('select-type dropdown contains the correct options', () => {
+		seedAngmar([{ scenarioId: 'aac-deadmens-dike', status: 'completed' as const, campaignLog: [] }]);
+		const { getByLabelText } = render(Page, { props: { data: { id: 'pt-angmar' } } });
+		const dropdown = getByLabelText(/Boon chosen/i) as HTMLSelectElement;
+		const optionValues = Array.from(dropdown.options).map((o) => o.value).filter(Boolean);
+		expect(optionValues).toContain("Iârion's Pendant");
+		expect(optionValues).toContain("Amarthiúl's Courage");
+	});
+
+	it('changing the select dropdown persists chosen value to the store', async () => {
+		seedAngmar([{ scenarioId: 'aac-deadmens-dike', status: 'completed' as const, campaignLog: [] }]);
+		const { getByLabelText } = render(Page, { props: { data: { id: 'pt-angmar' } } });
+		const dropdown = getByLabelText(/Boon chosen/i);
+		await fireEvent.change(dropdown, { target: { value: "Iârion's Pendant" } });
+		const record = get(playthroughs).find((p) => p.id === 'pt-angmar')!
+			.scenarios.find((s) => s.scenarioId === 'aac-deadmens-dike');
+		expect(record?.campaignLog.find((e) => e.fieldId === 'boon-choice')?.value).toBe("Iârion's Pendant");
+	});
+
+	it('select dropdown reflects a previously stored value on render', () => {
+		seedAngmar([{
+			scenarioId: 'aac-deadmens-dike',
+			status: 'completed' as const,
+			campaignLog: [{ fieldId: 'boon-choice', value: "Amarthiúl's Courage" }],
+		}]);
+		const { getByLabelText } = render(Page, { props: { data: { id: 'pt-angmar' } } });
+		expect(getByLabelText(/Boon chosen/i)).toHaveValue("Amarthiúl's Courage");
+	});
+});
+
+describe('Campaign detail — Campaign Mode gating', () => {
 	const SAGA_PRODUCT = 'fellowship-of-the-ring-saga';
+	const NON_CAMPAIGN_PRODUCT = 'angmar-awakened-hero';
 
 	afterEach(() => {
 		cleanup();
@@ -261,16 +383,16 @@ describe('Campaign detail — Saga gating', () => {
 		get(playthroughs).forEach((p) => playthroughs.deletePlaythrough(p.id));
 	});
 
-	it('boon/burden/fallen controls hidden for non-saga product', () => {
+	it('boon/burden/fallen controls hidden for non-campaign-mode product', () => {
 		playthroughs.createPlaythrough({
-			id: 'pt-non-saga',
+			id: 'pt-non-campaign',
 			name: 'Run',
-			productId: REVISED_CORE,
+			productId: NON_CAMPAIGN_PRODUCT,
 			decks: [{ id: 'd1', heroSlots: [{ heroName: 'Aragorn', boons: [], burdens: [], fallen: false }] }],
 			scenarios: [],
 			createdAt: '2026-01-01T00:00:00.000Z',
 		});
-		const { queryByRole } = render(Page, { props: { data: { id: 'pt-non-saga' } } });
+		const { queryByRole } = render(Page, { props: { data: { id: 'pt-non-campaign' } } });
 		expect(queryByRole('button', { name: /toggle fallen/i })).not.toBeInTheDocument();
 	});
 

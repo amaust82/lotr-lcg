@@ -12,7 +12,7 @@
   const campaignScenarios = $derived(playthrough ? (campaigns[playthrough.productId] ?? []) : []);
   const product = $derived(playthrough ? products.find((p) => p.id === playthrough.productId) ?? null : null);
   const productName = $derived(product?.name ?? playthrough?.productId ?? '');
-  const isSaga = $derived(product?.isSaga ?? false);
+  const isSaga = $derived(product?.hasCampaignMode ?? false);
   const completedCount = $derived(
     playthrough ? playthrough.scenarios.filter((s) => s.status === 'completed').length : 0
   );
@@ -36,20 +36,15 @@
     const existing = playthrough.scenarios.find((s) => s.scenarioId === scenarioId);
     const updated: ScenarioRecord = existing
       ? { ...existing, ...patch }
-      : { scenarioId, status: 'not_attempted', ...patch };
+      : { scenarioId, status: 'not_attempted', campaignLog: [], ...patch };
     const newScenarios = existing
       ? playthrough.scenarios.map((s) => (s.scenarioId === scenarioId ? updated : s))
       : [...playthrough.scenarios, updated];
     playthroughs.updatePlaythrough(playthrough.id, { scenarios: newScenarios });
   }
 
-  function cycleStatus(scenarioId: string) {
-    const current = getStatus(scenarioId);
-    const next =
-      current === 'not_attempted' ? 'completed' :
-      current === 'completed' ? 'failed' :
-      'not_attempted';
-    upsertScenario(scenarioId, { status: next });
+  function setStatus(scenarioId: string, value: string) {
+    upsertScenario(scenarioId, { status: value as ScenarioRecord['status'] });
   }
 
   function handleNotes(scenarioId: string, e: Event) {
@@ -57,11 +52,20 @@
     upsertScenario(scenarioId, { notes: value });
   }
 
-  const STATUS_LABEL: Record<string, string> = {
-    not_attempted: '—',
-    completed: '✓',
-    failed: '✕',
-  };
+  function getCampaignLogValue(scenarioId: string, fieldId: string, type: 'checkbox' | 'text' | 'select'): boolean | string {
+    const entry = getRecord(scenarioId)?.campaignLog?.find((e) => e.fieldId === fieldId);
+    if (entry) return entry.value;
+    return type === 'checkbox' ? false : '';
+  }
+
+  function setCampaignLogValue(scenarioId: string, fieldId: string, value: boolean | string) {
+    const existing = getRecord(scenarioId)?.campaignLog ?? [];
+    const updated = existing.some((e) => e.fieldId === fieldId)
+      ? existing.map((e) => (e.fieldId === fieldId ? { ...e, value } : e))
+      : [...existing, { fieldId, value }];
+    upsertScenario(scenarioId, { campaignLog: updated });
+  }
+
 
   function addDeck() {
     if (!playthrough || playthrough.decks.length >= 4) return;
@@ -139,14 +143,16 @@
         {@const notes = getNotes(scenario.id)}
         <li class="scenario-item" data-status={status}>
           <div class="scenario-row">
-            <button
-              class="status-btn"
-              aria-label="Toggle status: {status}"
-              onclick={() => cycleStatus(scenario.id)}
-              title={status === 'not_attempted' ? 'Mark completed' : status === 'completed' ? 'Mark failed' : 'Reset'}
+            <select
+              class="status-select"
+              aria-label="Status for {scenario.name}"
+              value={status}
+              onchange={(e) => setStatus(scenario.id, (e.target as HTMLSelectElement).value)}
             >
-              {STATUS_LABEL[status] ?? '—'}
-            </button>
+              <option value="not_attempted">Not played</option>
+              <option value="completed">Completed</option>
+              <option value="failed">Failed</option>
+            </select>
             <span class="scenario-name">{scenario.name}</span>
           </div>
           <textarea
@@ -156,6 +162,47 @@
             value={notes}
             oninput={(e) => handleNotes(scenario.id, e)}
           ></textarea>
+          {#if status !== 'not_attempted' && scenario.campaignLog && scenario.campaignLog.length > 0}
+            <div class="campaign-log-fields">
+              {#each scenario.campaignLog as field (field.id)}
+                <div class="log-field">
+                  {#if field.type === 'checkbox'}
+                    <label class="log-checkbox-label">
+                      <input
+                        type="checkbox"
+                        class="log-checkbox"
+                        checked={getCampaignLogValue(scenario.id, field.id, 'checkbox') === true}
+                        onchange={(e) => setCampaignLogValue(scenario.id, field.id, (e.target as HTMLInputElement).checked)}
+                      />
+                      {field.label}
+                    </label>
+                  {:else if field.type === 'select'}
+                    <label class="log-text-label" for="log-{scenario.id}-{field.id}">{field.label}</label>
+                    <select
+                      id="log-{scenario.id}-{field.id}"
+                      class="log-select"
+                      value={String(getCampaignLogValue(scenario.id, field.id, 'select'))}
+                      onchange={(e) => setCampaignLogValue(scenario.id, field.id, (e.target as HTMLSelectElement).value)}
+                    >
+                      <option value="">— choose —</option>
+                      {#each field.options ?? [] as opt (opt)}
+                        <option value={opt}>{opt}</option>
+                      {/each}
+                    </select>
+                  {:else}
+                    <label class="log-text-label" for="log-{scenario.id}-{field.id}">{field.label}</label>
+                    <input
+                      id="log-{scenario.id}-{field.id}"
+                      type="text"
+                      class="log-text-input"
+                      value={String(getCampaignLogValue(scenario.id, field.id, 'text'))}
+                      oninput={(e) => setCampaignLogValue(scenario.id, field.id, (e.target as HTMLInputElement).value)}
+                    />
+                  {/if}
+                </div>
+              {/each}
+            </div>
+          {/if}
         </li>
       {/each}
     </ul>
@@ -357,37 +404,43 @@
   margin-bottom: 8px;
 }
 
-.status-btn {
+.status-select {
+  appearance: none;
+  -webkit-appearance: none;
   flex-shrink: 0;
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  font-family: var(--font-body);
-  border-radius: 50%;
-  border: 1px solid color-mix(in srgb, var(--gold) 28%, transparent);
-  background: color-mix(in srgb, var(--gold-deep) 10%, var(--canvas));
-  color: color-mix(in srgb, var(--gold-deep) 80%, transparent);
+  font-family: var(--font-display-sc);
+  font-size: 10px;
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  border: 1px solid color-mix(in srgb, var(--gold) 22%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--gold-deep) 8%, var(--canvas));
+  color: color-mix(in srgb, var(--gold-deep) 70%, var(--parchment));
+  padding: 5px 24px 5px 9px;
   cursor: pointer;
-  transition: background var(--duration-base), border-color var(--duration-base), color var(--duration-base);
+  outline: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23806040' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 7px center;
+  transition: border-color var(--duration-base), color var(--duration-base), background-color var(--duration-base);
 }
 
-.scenario-item[data-status='completed'] .status-btn {
-  background: color-mix(in srgb, var(--gold) 18%, var(--canvas));
-  border-color: color-mix(in srgb, var(--gold) 55%, transparent);
+.status-select option {
+  background: var(--canvas);
+  color: var(--parchment);
+  text-transform: none;
+}
+
+.scenario-item[data-status='completed'] .status-select {
   color: var(--gold);
+  border-color: color-mix(in srgb, var(--gold) 50%, transparent);
+  background-color: color-mix(in srgb, var(--gold) 10%, var(--canvas));
 }
 
-.scenario-item[data-status='failed'] .status-btn {
-  background: color-mix(in srgb, #9b2c2c 15%, var(--canvas));
-  border-color: color-mix(in srgb, #c04040 45%, transparent);
+.scenario-item[data-status='failed'] .status-select {
   color: #c06060;
-}
-
-.status-btn:hover {
-  border-color: color-mix(in srgb, var(--gold) 45%, transparent);
+  border-color: color-mix(in srgb, #c04040 40%, transparent);
+  background-color: color-mix(in srgb, #9b2c2c 10%, var(--canvas));
 }
 
 .scenario-name {
@@ -432,6 +485,128 @@
 .notes::placeholder {
   color: var(--gold-deep);
   opacity: 0.4;
+}
+
+/* ── Campaign Log Fields ── */
+
+.campaign-log-fields {
+  margin-left: 40px;
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.log-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.log-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--font-body, sans-serif);
+  font-size: 12px;
+  color: var(--parchment);
+  opacity: 0.85;
+  cursor: pointer;
+  user-select: none;
+}
+
+.log-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  flex-shrink: 0;
+  width: 15px;
+  height: 15px;
+  border: 1.5px solid color-mix(in srgb, var(--gold) 38%, transparent);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--gold-deep) 8%, var(--canvas));
+  cursor: pointer;
+  position: relative;
+  transition: background var(--duration-base), border-color var(--duration-base);
+}
+
+.log-checkbox:checked {
+  background: color-mix(in srgb, var(--gold) 28%, var(--canvas));
+  border-color: color-mix(in srgb, var(--gold) 75%, transparent);
+}
+
+.log-checkbox:checked::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  background: var(--gold);
+  mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 10 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 4l3 3 5-6' stroke='white' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 10 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 4l3 3 5-6' stroke='white' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+}
+
+.log-checkbox:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--gold) 55%, transparent);
+  outline-offset: 2px;
+}
+
+.log-text-label {
+  font-family: var(--font-display-sc);
+  font-size: 10px;
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--gold-deep);
+  opacity: 0.7;
+}
+
+.log-text-input {
+  font-family: var(--font-body, sans-serif);
+  font-size: 12px;
+  color: var(--parchment);
+  background: color-mix(in srgb, var(--gold-deep) 6%, var(--canvas));
+  border: 1px solid color-mix(in srgb, var(--gold) 14%, transparent);
+  border-radius: 4px;
+  padding: 5px 8px;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color var(--duration-base);
+}
+
+.log-text-input:focus {
+  border-color: color-mix(in srgb, var(--gold) 35%, transparent);
+}
+
+.log-select {
+  appearance: none;
+  -webkit-appearance: none;
+  font-family: var(--font-display-sc);
+  font-size: 10px;
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  border: 1px solid color-mix(in srgb, var(--gold) 22%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--gold-deep) 8%, var(--canvas));
+  color: color-mix(in srgb, var(--gold-deep) 70%, var(--parchment));
+  padding: 5px 28px 5px 9px;
+  cursor: pointer;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23806040' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 7px center;
+  transition: border-color var(--duration-base), color var(--duration-base);
+}
+
+.log-select option {
+  background: var(--canvas);
+  color: var(--parchment);
+  text-transform: none;
 }
 
 /* ── Decks section ── */
