@@ -17,6 +17,7 @@
     "@testing-library/svelte": "^5.3.1",
     "@vite-pwa/assets-generator": "^1.0.2",
     "jsdom": "^29.1.1",
+    "playwright": "^1.61.0",
     "svelte": "^5.33.7",
     "typescript": "^5.8.3",
     "vite": "^6.3.5",
